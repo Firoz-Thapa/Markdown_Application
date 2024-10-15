@@ -23,7 +23,7 @@ function Navbar({ newFile, openFile, saveFile, exportToPDF, exportToHTML, toggle
         <li><button onClick={toggleDarkMode}>
         {isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
       </button></li>
-        <li><button onClick={exportToHTML}>Ask AI</button></li>
+        
       </ul>
     </nav>
   );
