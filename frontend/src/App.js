@@ -4,6 +4,7 @@ import Preview from './components/Preview';
 import Navbar from './components/Navbar';
 import Toolbar from './components/Toolbar';
 import Popup from './components/Popup';
+import Chatbot from './components/Chatbot';
 import { saveAs } from 'file-saver';
 import { exportToPDF } from './pdfUtils'; 
 import showdown from 'showdown';
@@ -15,6 +16,7 @@ function App() {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [popupType, setPopupType] = useState('');
   const [popupConfirm, setPopupConfirm] = useState(() => () => {});
+  const [isChatOpen, setIsChatOpen] = useState(false);
 
   // Initialize Showdown converter with tables and strikethrough enabled
   const converter = new showdown.Converter({ tables: true, strikethrough: true });
@@ -196,7 +198,7 @@ function App() {
         newFile={newFile}
         openFile={openFile}
         saveFile={saveFile}
-        exportToPDF={() => exportToPDF(markdown)} // Use the imported function
+        exportToPDF={() => exportToPDF(markdown)}
         exportToHTML={exportToHTML}
         toggleDarkMode={toggleDarkMode}
         isDarkMode={isDarkMode}
@@ -211,6 +213,20 @@ function App() {
         type={popupType}
         onClose={handlePopupClose}
         onConfirm={popupConfirm}
+      />
+      
+      {/* Chat Toggle Button */}
+      <button 
+        className="chat-toggle-btn" 
+        onClick={() => setIsChatOpen(!isChatOpen)}
+      >
+        💬
+      </button>
+      
+      {/* Chatbot Component */}
+      <Chatbot 
+        isOpen={isChatOpen} 
+        onClose={() => setIsChatOpen(false)} 
       />
     </div>
   );
