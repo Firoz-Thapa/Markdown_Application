@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import Editor from './components/Editor';
 import SyncedPreview from './components/SyncedPreview';
 import Navbar from './components/Navbar';
-import EnhancedToolbar from './components/Toolbar';
+import EnhancedToolbar from './components/Toolbar'; 
 import Popup from './components/Popup';
 import Chatbot from './components/Chatbot';
 import DocumentStats from './components/DocumentStats';
@@ -262,7 +262,7 @@ function App() {
       />
       
       {/* Mobile view toggle */}
-      <div className="view-toggle" style={{ display: 'none' }}>
+      <div className="view-toggle">
         <button 
           className={activeView === 'editor' ? 'active' : ''} 
           onClick={() => setActiveView('editor')}

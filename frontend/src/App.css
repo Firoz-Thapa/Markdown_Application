@@ -12,6 +12,8 @@
   padding: 10px;
   display: flex;
   justify-content: center;
+  flex-wrap: wrap;
+  gap: 5px;
 }
 
 .toolbar button {
@@ -29,11 +31,28 @@
   background-color: #ddd;
 }
 
+.toolbar-separator {
+  color: #666;
+  margin: 0 10px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+}
+
 /* Container and Editor Styles */
 .container {
   display: flex;
   flex: 1;
   overflow: hidden;
+  min-height: 0; /* Important for flex children */
+}
+
+.editor-view,
+.preview-view {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Prevents flex items from overflowing */
 }
 
 textarea, .preview {
@@ -45,6 +64,29 @@ textarea, .preview {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   font-family: 'Courier New', Courier, monospace;
   resize: none;
+  min-height: 400px; /* Minimum height */
+  width: auto; /* Let flex handle the width */
+}
+
+/* Mobile view toggle - hidden by default */
+.view-toggle {
+  display: none;
+  background-color: #f1f1f1;
+  border-bottom: 1px solid #ddd;
+}
+
+.view-toggle button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.view-toggle button.active {
+  background-color: #007bff;
+  color: white;
 }
 
 /* Mobile Responsive Styles */
@@ -53,10 +95,25 @@ textarea, .preview {
     flex-direction: column;
   }
   
+  .view-toggle {
+    display: flex !important;
+  }
+  
+  .editor-view,
+  .preview-view {
+    display: none;
+  }
+  
+  .editor-view.active,
+  .preview-view.active {
+    display: flex;
+  }
+  
   textarea, .preview {
     width: calc(100% - 20px);
     height: 40vh;
     margin: 10px;
+    min-height: 300px;
   }
   
   .toolbar {
@@ -70,6 +127,77 @@ textarea, .preview {
     padding: 8px 12px;
     font-size: 14px;
   }
+
+  .toolbar-separator {
+    display: none; /* Hide separators on mobile */
+  }
+}
+
+/* Desktop - ensure both views are visible */
+@media screen and (min-width: 769px) {
+  .editor-view,
+  .preview-view {
+    display: flex !important;
+  }
+}
+
+/* Table Modal Styles */
+.table-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.table-modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  min-width: 300px;
+}
+
+.table-modal-content h3 {
+  margin-top: 0;
+}
+
+.table-modal-content label {
+  display: block;
+  margin: 10px 0;
+}
+
+.table-modal-content input {
+  margin-left: 10px;
+  padding: 5px;
+  width: 60px;
+}
+
+.table-modal-actions {
+  margin-top: 20px;
+  text-align: right;
+}
+
+.table-modal-actions button {
+  margin-left: 10px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.table-modal-actions button:first-child {
+  background: #4CAF50;
+  color: white;
+}
+
+.table-modal-actions button:last-child {
+  background: #f44336;
+  color: white;
 }
 
 /* Dropdown Menu Styles */
@@ -99,6 +227,35 @@ textarea, .preview {
 
 .dropdown-item:hover {
   background-color: #f0f0f0;
+}
+
+/* Document Stats Styles */
+.document-stats {
+  display: flex;
+  justify-content: space-around;
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-top: 1px solid #ddd;
+  font-size: 12px;
+  flex-shrink: 0; /* Prevent stats from shrinking */
+}
+
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.stats-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.stats-value {
+  font-weight: bold;
+  color: #333;
+  margin-top: 2px;
 }
 
 /* Dark Mode Styles */
@@ -171,6 +328,30 @@ body.dark-mode {
 .dark-mode textarea, .dark-mode .preview {
   border: 1px solid #555;
   background-color: #2c2c2c;
+  color: #eaeaea;
+}
+
+.dark-mode .document-stats {
+  background-color: #333;
+  border-color: #555;
+}
+
+.dark-mode .stats-label {
+  color: #aaa;
+}
+
+.dark-mode .stats-value {
+  color: #eaeaea;
+}
+
+.dark-mode .table-modal-content {
+  background: #2e2e2e;
+  color: #eaeaea;
+}
+
+.dark-mode .table-modal-content input {
+  background: #444;
+  border-color: #555;
   color: #eaeaea;
 }
 
