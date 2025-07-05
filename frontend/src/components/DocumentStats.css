@@ -1,0 +1,52 @@
+/* frontend/src/components/DocumentStats.css */
+.document-stats {
+  display: flex;
+  justify-content: space-around;
+  background-color: #f8f9fa;
+  padding: 8px;
+  border-top: 1px solid #ddd;
+  font-size: 12px;
+}
+
+.stats-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.stats-label {
+  color: #666;
+  font-weight: 500;
+}
+
+.stats-value {
+  font-weight: bold;
+  color: #333;
+  margin-top: 2px;
+}
+
+/* Dark mode */
+.dark-mode .document-stats {
+  background-color: #333;
+  border-color: #555;
+}
+
+.dark-mode .stats-label {
+  color: #aaa;
+}
+
+.dark-mode .stats-value {
+  color: #eaeaea;
+}
+
+@media screen and (max-width: 768px) {
+  .document-stats {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  
+  .stats-item {
+    min-width: 45%;
+  }
+}
