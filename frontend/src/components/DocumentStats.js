@@ -1,4 +1,5 @@
 import React from 'react';
+import './DocumentStats.css'; 
 
 const DocumentStats = ({ markdown }) => {
   const calculateStats = (text) => {
