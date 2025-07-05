@@ -1,5 +1,3 @@
-import React from 'react';
-
 function Editor({ markdown, onChange }) {
   return (
     <textarea
