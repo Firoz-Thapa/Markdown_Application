@@ -9,6 +9,17 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
   const insertTable = () => {
     let table = '';
     
+    // Add leading newline if not at start of line
+    const textarea = document.querySelector('textarea');
+    const start = textarea.selectionStart;
+    const beforeCursor = markdown.substring(0, start);
+    const lastChar = beforeCursor.slice(-1);
+    
+    // Add newline before table if we're not at the beginning of a line
+    if (lastChar && lastChar !== '\n') {
+      table += '\n';
+    }
+    
     // Header row
     table += '| ';
     for (let i = 0; i < tableCols; i++) {
@@ -32,26 +43,74 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
       table += '\n';
     }
     
-    const textarea = document.querySelector('textarea');
-    const start = textarea.selectionStart;
+    // Add blank line after table for proper Markdown parsing
+    table += '\n';
+    
     const newMarkdown = markdown.substring(0, start) + table + markdown.substring(start);
     setMarkdown(newMarkdown);
     setShowTableModal(false);
+    
+    // Focus back to textarea and position cursor after the table
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + table.length, start + table.length);
+    }, 0);
   };
 
   const insertHorizontalRule = () => {
     const textarea = document.querySelector('textarea');
     const start = textarea.selectionStart;
-    const newMarkdown = markdown.substring(0, start) + '\n---\n' + markdown.substring(start);
+    const beforeCursor = markdown.substring(0, start);
+    const lastChar = beforeCursor.slice(-1);
+    
+    let hr = '';
+    
+    // Add newline before HR if not at start of line
+    if (lastChar && lastChar !== '\n') {
+      hr += '\n';
+    }
+    
+    hr += '---';
+    
+    // Add newline after HR
+    hr += '\n\n';
+    
+    const newMarkdown = markdown.substring(0, start) + hr + markdown.substring(start);
     setMarkdown(newMarkdown);
+    
+    // Focus back to textarea
+    setTimeout(() => {
+      textarea.focus();
+      textarea.setSelectionRange(start + hr.length, start + hr.length);
+    }, 0);
   };
 
   const insertCheckbox = () => {
     const textarea = document.querySelector('textarea');
     const start = textarea.selectionStart;
-    const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-    const newMarkdown = markdown.substring(0, start) + `- [ ] ${selectedText}` + markdown.substring(textarea.selectionEnd);
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    const beforeCursor = markdown.substring(0, start);
+    const lastChar = beforeCursor.slice(-1);
+    
+    let checkbox = '';
+    
+    // Add newline if not at start of line
+    if (lastChar && lastChar !== '\n') {
+      checkbox += '\n';
+    }
+    
+    checkbox += `- [ ] ${selectedText || 'Task item'}`;
+    
+    const newMarkdown = markdown.substring(0, start) + checkbox + markdown.substring(end);
     setMarkdown(newMarkdown);
+    
+    // Focus back to textarea
+    setTimeout(() => {
+      textarea.focus();
+      const newPosition = start + checkbox.length;
+      textarea.setSelectionRange(newPosition, newPosition);
+    }, 0);
   };
 
   return (
@@ -93,7 +152,7 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
               <input 
                 type="number" 
                 value={tableRows} 
-                onChange={(e) => setTableRows(parseInt(e.target.value))}
+                onChange={(e) => setTableRows(parseInt(e.target.value) || 1)}
                 min="1"
                 max="20"
               />
@@ -103,7 +162,7 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
               <input 
                 type="number" 
                 value={tableCols} 
-                onChange={(e) => setTableCols(parseInt(e.target.value))}
+                onChange={(e) => setTableCols(parseInt(e.target.value) || 1)}
                 min="1"
                 max="10"
               />

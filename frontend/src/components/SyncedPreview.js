@@ -7,7 +7,6 @@ const SyncedPreview = ({ markdown, converter, editorRef }) => {
 
   const html = converter.makeHtml(markdown);
 
-  // Sync scroll between editor and preview
   const syncScroll = useCallback((sourceElement, targetElement) => {
     if (isScrollingRef.current || !sourceElement || !targetElement) return;
     
@@ -17,7 +16,6 @@ const SyncedPreview = ({ markdown, converter, editorRef }) => {
       const sourceScrollTop = sourceElement.scrollTop;
       const sourceScrollHeight = sourceElement.scrollHeight - sourceElement.clientHeight;
       
-      // Prevent division by zero
       if (sourceScrollHeight <= 0) {
         isScrollingRef.current = false;
         return;
@@ -27,16 +25,12 @@ const SyncedPreview = ({ markdown, converter, editorRef }) => {
       
       const targetScrollHeight = targetElement.scrollHeight - targetElement.clientHeight;
       const targetScrollTop = scrollPercent * targetScrollHeight;
-      
-      // Only sync if there's actual scrollable content
       if (targetScrollHeight > 0) {
         targetElement.scrollTop = targetScrollTop;
       }
     } catch (error) {
       console.error('Scroll sync error:', error);
     }
-    
-    // Reset the scrolling flag after a short delay
     if (syncTimeoutRef.current) {
       clearTimeout(syncTimeoutRef.current);
     }
@@ -90,11 +84,9 @@ const SyncedPreview = ({ markdown, converter, editorRef }) => {
       if (target.tagName === 'A' && target.href) {
         event.preventDefault();
         
-        // Check if it's an external link
         if (target.href.startsWith('http://') || target.href.startsWith('https://')) {
           window.open(target.href, '_blank', 'noopener,noreferrer');
         } else if (target.href.startsWith('#')) {
-          // Handle internal anchor links
           const anchor = target.href.substring(target.href.indexOf('#'));
           const element = preview.querySelector(`[id="${anchor.substring(1)}"]`);
           if (element) {
