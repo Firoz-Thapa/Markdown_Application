@@ -7,6 +7,7 @@ import Popup from './components/Popup';
 import Chatbot from './components/Chatbot';
 import DocumentStats from './components/DocumentStats';
 import { useAutoSave, recoverAutoSave, clearAutoSave } from './hooks/useAutoSave';
+import mathJaxManager from './utils/mathUtils';
 import { saveAs } from 'file-saver';
 import { exportToPDF } from './pdfUtils'; 
 import showdown from 'showdown';
@@ -29,6 +30,13 @@ function App() {
 
   // Initialize Showdown converter with tables and strikethrough enabled
   const converter = new showdown.Converter({ tables: true, strikethrough: true });
+
+  // Load MathJax on component mount
+  useEffect(() => {
+    mathJaxManager.loadMathJax().catch(error => {
+      console.error('Failed to load MathJax:', error);
+    });
+  }, []);
 
   // Check for auto-saved content on mount
   useEffect(() => {

@@ -5,20 +5,15 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
   const [showTableModal, setShowTableModal] = useState(false);
   const [tableRows, setTableRows] = useState(3);
   const [tableCols, setTableCols] = useState(3);
+  
+  // Math functionality
+  const [showMathDropdown, setShowMathDropdown] = useState(false);
+  const [showMathModal, setShowMathModal] = useState(false);
+  const [mathInput, setMathInput] = useState('');
+  const [mathType, setMathType] = useState('inline');
 
   const insertTable = () => {
     let table = '';
-    
-    // Add leading newline if not at start of line
-    const textarea = document.querySelector('textarea');
-    const start = textarea.selectionStart;
-    const beforeCursor = markdown.substring(0, start);
-    const lastChar = beforeCursor.slice(-1);
-    
-    // Add newline before table if we're not at the beginning of a line
-    if (lastChar && lastChar !== '\n') {
-      table += '\n';
-    }
     
     // Header row
     table += '| ';
@@ -43,74 +38,79 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
       table += '\n';
     }
     
-    // Add blank line after table for proper Markdown parsing
-    table += '\n';
-    
+    const textarea = document.querySelector('textarea');
+    const start = textarea.selectionStart;
     const newMarkdown = markdown.substring(0, start) + table + markdown.substring(start);
     setMarkdown(newMarkdown);
     setShowTableModal(false);
-    
-    // Focus back to textarea and position cursor after the table
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + table.length, start + table.length);
-    }, 0);
   };
 
   const insertHorizontalRule = () => {
     const textarea = document.querySelector('textarea');
     const start = textarea.selectionStart;
-    const beforeCursor = markdown.substring(0, start);
-    const lastChar = beforeCursor.slice(-1);
-    
-    let hr = '';
-    
-    // Add newline before HR if not at start of line
-    if (lastChar && lastChar !== '\n') {
-      hr += '\n';
-    }
-    
-    hr += '---';
-    
-    // Add newline after HR
-    hr += '\n\n';
-    
-    const newMarkdown = markdown.substring(0, start) + hr + markdown.substring(start);
+    const newMarkdown = markdown.substring(0, start) + '\n---\n' + markdown.substring(start);
     setMarkdown(newMarkdown);
-    
-    // Focus back to textarea
-    setTimeout(() => {
-      textarea.focus();
-      textarea.setSelectionRange(start + hr.length, start + hr.length);
-    }, 0);
   };
 
   const insertCheckbox = () => {
     const textarea = document.querySelector('textarea');
     const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
-    const beforeCursor = markdown.substring(0, start);
-    const lastChar = beforeCursor.slice(-1);
-    
-    let checkbox = '';
-    
-    // Add newline if not at start of line
-    if (lastChar && lastChar !== '\n') {
-      checkbox += '\n';
-    }
-    
-    checkbox += `- [ ] ${selectedText || 'Task item'}`;
-    
-    const newMarkdown = markdown.substring(0, start) + checkbox + markdown.substring(end);
+    const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
+    const newMarkdown = markdown.substring(0, start) + `- [ ] ${selectedText}` + markdown.substring(textarea.selectionEnd);
     setMarkdown(newMarkdown);
+  };
+
+  // Math functions
+  const insertMathEquation = (equation, isInline = true) => {
+    const textarea = document.querySelector('textarea');
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
     
-    // Focus back to textarea
+    let formattedEquation;
+    if (isInline) {
+      formattedEquation = `$${equation}$`;
+    } else {
+      formattedEquation = `\n$$\n${equation}\n$$\n`;
+    }
+
+    const newMarkdown = markdown.substring(0, start) + formattedEquation + markdown.substring(end);
+    setMarkdown(newMarkdown);
+
+    // Focus back to textarea and position cursor
     setTimeout(() => {
       textarea.focus();
-      const newPosition = start + checkbox.length;
+      const newPosition = start + formattedEquation.length;
       textarea.setSelectionRange(newPosition, newPosition);
     }, 0);
+
+    setShowMathDropdown(false);
+  };
+
+  const insertCustomMath = () => {
+    if (!mathInput.trim()) return;
+    
+    insertMathEquation(mathInput, mathType === 'inline');
+    setMathInput('');
+    setShowMathModal(false);
+  };
+
+  const mathExamples = {
+    inline: {
+      basic: 'x = y + z',
+      fraction: '\\frac{a}{b}',
+      superscript: 'x^2',
+      subscript: 'a_i',
+      greek: '\\alpha + \\beta = \\gamma'
+    },
+    display: {
+      quadratic: '\\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}',
+      integral: '\\int_{a}^{b} f(x) dx',
+      summation: '\\sum_{i=1}^{n} x_i',
+      matrix: '\\begin{pmatrix} a & b \\\\ c & d \\end{pmatrix}',
+      limit: '\\lim_{x \\to \\infty} \\frac{1}{x} = 0'
+    }
   };
 
   return (
@@ -138,9 +138,113 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
       
       <div className="toolbar-separator">|</div>
       
-      {/* New buttons */}
+      {/* Math Toolbar */}
+      <div className="dropdown math-toolbar">
+        <button 
+          onClick={() => setShowMathDropdown(!showMathDropdown)}
+          title="Insert Math Equation"
+          className="math-button"
+        >
+          ∑ Math ▼
+        </button>
+        
+        {showMathDropdown && (
+          <div className="math-dropdown-menu">
+            <div className="math-section">
+              <h4>Quick Insert</h4>
+              <button onClick={() => setShowMathModal(true)}>
+                ✏️ Custom Equation
+              </button>
+            </div>
+
+            <div className="math-section">
+              <h4>Inline Math</h4>
+              {Object.entries(mathExamples.inline).map(([key, equation]) => (
+                <button 
+                  key={key}
+                  onClick={() => insertMathEquation(equation, true)}
+                  className="math-example"
+                >
+                  ${equation}$
+                </button>
+              ))}
+            </div>
+
+            <div className="math-section">
+              <h4>Display Math</h4>
+              {Object.entries(mathExamples.display).map(([key, equation]) => (
+                <button 
+                  key={key}
+                  onClick={() => insertMathEquation(equation, false)}
+                  className="math-example"
+                >
+                  $${equation.substring(0, 20)}...$
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+      
+      <div className="toolbar-separator">|</div>
+      
+      {/* Other buttons */}
       <button onClick={() => setShowTableModal(true)} title="Insert Table">📊 Table</button>
       <button onClick={insertHorizontalRule} title="Horizontal Rule">— HR</button>
+      
+      {/* Math Modal */}
+      {showMathModal && (
+        <div className="math-modal">
+          <div className="math-modal-content">
+            <h3>Insert Math Equation</h3>
+            
+            <div className="math-type-selector">
+              <label>
+                <input
+                  type="radio"
+                  value="inline"
+                  checked={mathType === 'inline'}
+                  onChange={(e) => setMathType(e.target.value)}
+                />
+                Inline Math ($...$)
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  value="display"
+                  checked={mathType === 'display'}
+                  onChange={(e) => setMathType(e.target.value)}
+                />
+                Display Math ($$...$$)
+              </label>
+            </div>
+
+            <textarea
+              value={mathInput}
+              onChange={(e) => setMathInput(e.target.value)}
+              placeholder="Enter LaTeX equation (e.g., x = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a})"
+              rows={4}
+              className="math-input"
+            />
+
+            <div className="math-preview">
+              <h4>Preview:</h4>
+              <div className="math-preview-content">
+                {mathType === 'inline' ? `$${mathInput}$` : `$$${mathInput}$$`}
+              </div>
+            </div>
+
+            <div className="math-modal-actions">
+              <button onClick={insertCustomMath} className="confirm-btn">
+                Insert
+              </button>
+              <button onClick={() => setShowMathModal(false)} className="cancel-btn">
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       
       {/* Table Modal */}
       {showTableModal && (
@@ -152,7 +256,7 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
               <input 
                 type="number" 
                 value={tableRows} 
-                onChange={(e) => setTableRows(parseInt(e.target.value) || 1)}
+                onChange={(e) => setTableRows(parseInt(e.target.value))}
                 min="1"
                 max="20"
               />
@@ -162,7 +266,7 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
               <input 
                 type="number" 
                 value={tableCols} 
-                onChange={(e) => setTableCols(parseInt(e.target.value) || 1)}
+                onChange={(e) => setTableCols(parseInt(e.target.value))}
                 min="1"
                 max="10"
               />
