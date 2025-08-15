@@ -2,7 +2,7 @@
 
 **Author**: Firoz Thapa  
 **Degree**: Bachelor of Engineering, Industrial Information Technology, LAB University of Applied Sciences  
-**Completion Year**: 2026  
+**Completion Year**: 2025 
 
 ## 1. Introduction
 
