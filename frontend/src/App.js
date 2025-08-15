@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import EnhancedEditor from './components/EnhancedEditor'; // Updated import
+import EnhancedEditor from './components/EnhancedEditor';
 import SyncedPreview from './components/SyncedPreview';
 import Navbar from './components/Navbar';
 import EnhancedToolbar from './components/Toolbar'; 
@@ -21,15 +21,26 @@ function App() {
   const [popupConfirm, setPopupConfirm] = useState(() => () => {});
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
-  const [activeView, setActiveView] = useState('editor'); // For mobile tabs
+  const [activeView, setActiveView] = useState('editor');
+  const [simpleLineBreaks, setSimpleLineBreaks] = useState(true); // New state for line break mode
   
   const editorRef = useRef(null);
 
   // Auto-save functionality
   useAutoSave(markdown);
 
-  // Initialize Showdown converter with tables and strikethrough enabled
-  const converter = new showdown.Converter({ tables: true, strikethrough: true });
+  // Initialize Showdown converter - will be updated based on line break mode
+  const getConverter = useCallback(() => {
+    return new showdown.Converter({ 
+      tables: true, 
+      strikethrough: true,
+      simpleLineBreaks: simpleLineBreaks,  // Dynamic based on state
+      headerLevelStart: 1,
+      ghCodeBlocks: true,
+      tasklists: true,
+      smartIndentationFix: true
+    });
+  }, [simpleLineBreaks]);
 
   // Load MathJax on component mount
   useEffect(() => {
@@ -75,10 +86,14 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [saveFile]); // Now includes saveFile dependency
+  }, [saveFile]);
 
   const handleEditorChange = useCallback((event) => {
     setMarkdown(event.target.value);
+  }, []);
+
+  const handleLineBreakModeChange = useCallback((newMode) => {
+    setSimpleLineBreaks(newMode);
   }, []);
 
   const applyFormatting = (type) => {
@@ -91,7 +106,9 @@ function App() {
       let formattedText = '';
 
       if (data.type === 'link') {
-        formattedText = `[${data.text || selectedText || 'Link Text'}](${data.url})`;
+        // Use the provided text, or selected text, or default to 'Link Text'
+        const displayText = data.text || selectedText || 'Link Text';
+        formattedText = `[${displayText}](${data.url})`;
       } else if (data.type === 'image') {
         formattedText = `![${data.altText || 'Alt Text'}](${data.url})`;
       }
@@ -163,6 +180,7 @@ function App() {
   };
 
   const exportToHTML = () => {
+    const converter = getConverter();
     const html = converter.makeHtml(markdown);
     const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
     saveAs(blob, 'document.html');
@@ -201,6 +219,8 @@ function App() {
         markdown={markdown}
         setMarkdown={setMarkdown}
         editorRef={editorRef}
+        onLineBreakModeChange={handleLineBreakModeChange}
+        simpleLineBreaks={simpleLineBreaks}
       />
       
       {/* Mobile view toggle */}
@@ -231,7 +251,7 @@ function App() {
         <div className={`preview-view ${activeView === 'preview' ? 'active' : ''}`}>
           <SyncedPreview 
             markdown={markdown} 
-            converter={converter} 
+            converter={getConverter()} 
             editorRef={editorRef}
           />
         </div>
