@@ -69,28 +69,41 @@ const SyncedPreview = ({ markdown, converter, editorRef }) => {
 
   // Set up scroll synchronization
   useEffect(() => {
-    const editor = editorRef?.current;
+    if (!editorRef?.current) return;
+
     const preview = previewRef.current;
+    if (!preview) return;
+
+    // Get the actual scrollable element from CodeMirror
+    const editorView = editorRef.current.getEditor();
+    if (!editorView) return;
+
+    // For CodeMirror 6, we need to get the scroller element
+    const editorScrollElement = editorView.scrollDOM;
     
-    if (!editor || !preview) return;
+    if (!editorScrollElement) {
+      console.warn('Could not find editor scroll element');
+      return;
+    }
 
     const handleEditorScroll = () => {
       if (!isScrollingRef.current) {
-        syncScroll(editor, preview);
+        syncScroll(editorScrollElement, preview);
       }
     };
     
     const handlePreviewScroll = () => {
       if (!isScrollingRef.current) {
-        syncScroll(preview, editor);
+        syncScroll(preview, editorScrollElement);
       }
     };
 
-    editor.addEventListener('scroll', handleEditorScroll, { passive: true });
+    // Add event listeners
+    editorScrollElement.addEventListener('scroll', handleEditorScroll, { passive: true });
     preview.addEventListener('scroll', handlePreviewScroll, { passive: true });
 
     return () => {
-      editor.removeEventListener('scroll', handleEditorScroll);
+      editorScrollElement.removeEventListener('scroll', handleEditorScroll);
       preview.removeEventListener('scroll', handlePreviewScroll);
       
       if (syncTimeoutRef.current) {
