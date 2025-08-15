@@ -500,3 +500,239 @@ body.dark-mode pre, body.dark-mode code {
 .dark-mode .preview tr:hover {
   background-color: #4a4a4a;
 }
+
+
+/* Enhanced Editor Styles */
+.enhanced-editor {
+  height: 100%;
+  width: 100%;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
+/* Override CodeMirror default styles to match your app */
+.enhanced-editor .cm-editor {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+  height: 100%;
+}
+
+.enhanced-editor .cm-focused {
+  outline: none;
+  border-color: #007bff;
+}
+
+.enhanced-editor .cm-content {
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  min-height: 100%;
+}
+
+.enhanced-editor .cm-cursor {
+  border-left: 2px solid #007bff;
+}
+
+.enhanced-editor .cm-selectionBackground {
+  background-color: #b3d4fc;
+}
+
+.enhanced-editor .cm-scroller {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
+/* Markdown syntax highlighting */
+.enhanced-editor .tok-heading {
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.enhanced-editor .tok-heading1 {
+  font-size: 1.5em;
+  color: #1d4ed8;
+  font-weight: bold;
+}
+
+.enhanced-editor .tok-heading2 {
+  font-size: 1.3em;
+  color: #2563eb;
+  font-weight: bold;
+}
+
+.enhanced-editor .tok-heading3 {
+  font-size: 1.1em;
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.enhanced-editor .tok-strong {
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.enhanced-editor .tok-emphasis {
+  font-style: italic;
+  color: #374151;
+}
+
+.enhanced-editor .tok-strikethrough {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+.enhanced-editor .tok-link {
+  color: #059669;
+  text-decoration: underline;
+}
+
+.enhanced-editor .tok-url {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+
+.enhanced-editor .tok-monospace {
+  background-color: #f3f4f6;
+  color: #dc2626;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+}
+
+.enhanced-editor .tok-list {
+  color: #7c3aed;
+  font-weight: bold;
+}
+
+.enhanced-editor .tok-quote {
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Dark mode styles */
+.dark-mode .enhanced-editor .cm-editor {
+  background-color: #2c2c2c;
+  border-color: #555;
+  color: #eaeaea;
+}
+
+.dark-mode .enhanced-editor .cm-content {
+  color: #eaeaea;
+}
+
+.dark-mode .enhanced-editor .cm-cursor {
+  border-left-color: #60a5fa;
+}
+
+.dark-mode .enhanced-editor .cm-selectionBackground {
+  background-color: #374151;
+}
+
+.dark-mode .enhanced-editor .cm-focused {
+  border-color: #60a5fa;
+}
+
+.dark-mode .enhanced-editor .tok-heading {
+  color: #60a5fa;
+}
+
+.dark-mode .enhanced-editor .tok-heading1 {
+  color: #3b82f6;
+}
+
+.dark-mode .enhanced-editor .tok-heading2 {
+  color: #60a5fa;
+}
+
+.dark-mode .enhanced-editor .tok-heading3 {
+  color: #93c5fd;
+}
+
+.dark-mode .enhanced-editor .tok-strong {
+  color: #f9fafb;
+}
+
+.dark-mode .enhanced-editor .tok-emphasis {
+  color: #d1d5db;
+}
+
+.dark-mode .enhanced-editor .tok-strikethrough {
+  color: #9ca3af;
+}
+
+.dark-mode .enhanced-editor .tok-link {
+  color: #10b981;
+}
+
+.dark-mode .enhanced-editor .tok-url {
+  color: #a78bfa;
+}
+
+.dark-mode .enhanced-editor .tok-monospace {
+  background-color: #374151;
+  color: #fca5a5;
+}
+
+.dark-mode .enhanced-editor .tok-list {
+  color: #a78bfa;
+}
+
+.dark-mode .enhanced-editor .tok-quote {
+  color: #9ca3af;
+}
+
+/* Line numbers */
+.enhanced-editor .cm-lineNumbers {
+  color: #9ca3af;
+  background-color: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  padding-right: 8px;
+  font-size: 12px;
+}
+
+.dark-mode .enhanced-editor .cm-lineNumbers {
+  color: #6b7280;
+  background-color: #1f2937;
+  border-right-color: #374151;
+}
+
+/* Active line highlighting */
+.enhanced-editor .cm-activeLine {
+  background-color: #f8fafc;
+}
+
+.dark-mode .enhanced-editor .cm-activeLine {
+  background-color: #1e293b;
+}
+
+/* Mobile responsive adjustments */
+@media screen and (max-width: 768px) {
+  .enhanced-editor .cm-content {
+    padding: 10px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .enhanced-editor .cm-editor {
+    border-radius: 0;
+  }
+}
+
+/* Update existing editor styles to work with both textarea and CodeMirror */
+textarea, .preview, .enhanced-editor {
+  flex: 1;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  margin: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  font-family: 'Courier New', Courier, monospace;
+  resize: none;
+  min-height: 400px;
+  width: auto;
+}
+
+/* Override for enhanced editor since it handles its own padding */
+.enhanced-editor {
+  padding: 0;
+}

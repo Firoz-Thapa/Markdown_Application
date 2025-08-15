@@ -1,0 +1,272 @@
+/* Enhanced Editor Styles */
+.enhanced-editor {
+  height: 100%;
+  width: 100%;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', 'source-code-pro', monospace;
+}
+
+/* Override CodeMirror default styles to match your app */
+.enhanced-editor .cm-editor {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.enhanced-editor .cm-focused {
+  outline: none;
+  border-color: #007bff;
+}
+
+.enhanced-editor .cm-content {
+  padding: 15px;
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+}
+
+.enhanced-editor .cm-cursor {
+  border-left: 2px solid #007bff;
+}
+
+.enhanced-editor .cm-selectionBackground {
+  background-color: #b3d4fc;
+}
+
+/* Markdown syntax highlighting */
+.enhanced-editor .cm-editor .tok-heading {
+  font-weight: bold;
+  color: #2563eb;
+}
+
+.enhanced-editor .cm-editor .tok-heading1 {
+  font-size: 1.5em;
+  color: #1d4ed8;
+  font-weight: bold;
+}
+
+.enhanced-editor .cm-editor .tok-heading2 {
+  font-size: 1.3em;
+  color: #2563eb;
+  font-weight: bold;
+}
+
+.enhanced-editor .cm-editor .tok-heading3 {
+  font-size: 1.1em;
+  color: #3b82f6;
+  font-weight: bold;
+}
+
+.enhanced-editor .cm-editor .tok-strong {
+  font-weight: bold;
+  color: #1f2937;
+}
+
+.enhanced-editor .cm-editor .tok-emphasis {
+  font-style: italic;
+  color: #374151;
+}
+
+.enhanced-editor .cm-editor .tok-strikethrough {
+  text-decoration: line-through;
+  color: #6b7280;
+}
+
+.enhanced-editor .cm-editor .tok-link {
+  color: #059669;
+  text-decoration: underline;
+}
+
+.enhanced-editor .cm-editor .tok-url {
+  color: #7c3aed;
+  text-decoration: underline;
+}
+
+.enhanced-editor .cm-editor .tok-monospace {
+  background-color: #f3f4f6;
+  color: #dc2626;
+  padding: 2px 4px;
+  border-radius: 3px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+}
+
+.enhanced-editor .cm-editor .tok-list {
+  color: #7c3aed;
+  font-weight: bold;
+}
+
+.enhanced-editor .cm-editor .tok-quote {
+  color: #6b7280;
+  font-style: italic;
+  border-left: 4px solid #d1d5db;
+  padding-left: 10px;
+}
+
+.enhanced-editor .cm-editor .tok-meta {
+  color: #9ca3af;
+}
+
+.enhanced-editor .cm-editor .tok-atom {
+  color: #059669;
+}
+
+/* Dark mode styles */
+.dark-mode .enhanced-editor .cm-editor {
+  background-color: #2c2c2c;
+  border-color: #555;
+  color: #eaeaea;
+}
+
+.dark-mode .enhanced-editor .cm-content {
+  color: #eaeaea;
+}
+
+.dark-mode .enhanced-editor .cm-cursor {
+  border-left-color: #60a5fa;
+}
+
+.dark-mode .enhanced-editor .cm-selectionBackground {
+  background-color: #374151;
+}
+
+.dark-mode .enhanced-editor .cm-focused {
+  border-color: #60a5fa;
+}
+
+.dark-mode .enhanced-editor .tok-heading {
+  color: #60a5fa;
+}
+
+.dark-mode .enhanced-editor .tok-heading1 {
+  color: #3b82f6;
+}
+
+.dark-mode .enhanced-editor .tok-heading2 {
+  color: #60a5fa;
+}
+
+.dark-mode .enhanced-editor .tok-heading3 {
+  color: #93c5fd;
+}
+
+.dark-mode .enhanced-editor .tok-strong {
+  color: #f9fafb;
+}
+
+.dark-mode .enhanced-editor .tok-emphasis {
+  color: #d1d5db;
+}
+
+.dark-mode .enhanced-editor .tok-strikethrough {
+  color: #9ca3af;
+}
+
+.dark-mode .enhanced-editor .tok-link {
+  color: #10b981;
+}
+
+.dark-mode .enhanced-editor .tok-url {
+  color: #a78bfa;
+}
+
+.dark-mode .enhanced-editor .tok-monospace {
+  background-color: #374151;
+  color: #fca5a5;
+}
+
+.dark-mode .enhanced-editor .tok-list {
+  color: #a78bfa;
+}
+
+.dark-mode .enhanced-editor .tok-quote {
+  color: #9ca3af;
+  border-left-color: #4b5563;
+}
+
+.dark-mode .enhanced-editor .tok-meta {
+  color: #6b7280;
+}
+
+.dark-mode .enhanced-editor .tok-atom {
+  color: #34d399;
+}
+
+/* Line numbers (if you want to add them later) */
+.enhanced-editor .cm-lineNumbers {
+  color: #9ca3af;
+  background-color: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+  padding-right: 8px;
+  font-size: 12px;
+}
+
+.dark-mode .enhanced-editor .cm-lineNumbers {
+  color: #6b7280;
+  background-color: #1f2937;
+  border-right-color: #374151;
+}
+
+/* Gutter */
+.enhanced-editor .cm-gutter {
+  background-color: #f9fafb;
+  border-right: 1px solid #e5e7eb;
+}
+
+.dark-mode .enhanced-editor .cm-gutter {
+  background-color: #1f2937;
+  border-right-color: #374151;
+}
+
+/* Search highlighting */
+.enhanced-editor .cm-searchMatch {
+  background-color: #fef3c7;
+  border: 1px solid #f59e0b;
+}
+
+.enhanced-editor .cm-searchMatch.cm-searchMatch-selected {
+  background-color: #fbbf24;
+}
+
+.dark-mode .enhanced-editor .cm-searchMatch {
+  background-color: #451a03;
+  border-color: #92400e;
+}
+
+.dark-mode .enhanced-editor .cm-searchMatch.cm-searchMatch-selected {
+  background-color: #78350f;
+}
+
+/* Placeholder text */
+.enhanced-editor .cm-placeholder {
+  color: #9ca3af;
+  font-style: italic;
+}
+
+.dark-mode .enhanced-editor .cm-placeholder {
+  color: #6b7280;
+}
+
+/* Mobile responsive adjustments */
+@media screen and (max-width: 768px) {
+  .enhanced-editor .cm-content {
+    padding: 10px;
+    font-size: 16px; /* Prevent zoom on iOS */
+  }
+  
+  .enhanced-editor .cm-editor {
+    border-radius: 0;
+  }
+}
+
+/* Ensure editor takes full height */
+.editor-view .enhanced-editor {
+  height: calc(100vh - 200px); /* Adjust based on your toolbar/navbar height */
+  min-height: 400px;
+}
+
+@media screen and (max-width: 768px) {
+  .editor-view.active .enhanced-editor {
+    height: calc(100vh - 300px);
+    min-height: 300px;
+  }
+}

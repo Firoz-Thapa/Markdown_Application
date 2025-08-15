@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import Editor from './components/Editor';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import EnhancedEditor from './components/EnhancedEditor'; // Updated import
 import SyncedPreview from './components/SyncedPreview';
 import Navbar from './components/Navbar';
 import EnhancedToolbar from './components/Toolbar'; 
@@ -51,6 +51,13 @@ function App() {
     document.body.className = isDarkMode ? 'dark-mode' : '';
   }, [isDarkMode]);
 
+  // Memoize saveFile function to prevent it from changing on every render
+  const saveFile = useCallback(() => {
+    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
+    saveAs(blob, 'document.md');
+    clearAutoSave();
+  }, [markdown]);
+
   // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -68,82 +75,29 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [saveFile]); // Now includes saveFile dependency
+
+  const handleEditorChange = useCallback((event) => {
+    setMarkdown(event.target.value);
   }, []);
 
-  useEffect(() => {
-    const textarea = document.querySelector('textarea');
-    if (textarea) {
-      editorRef.current = textarea;
-      textarea.addEventListener('keydown', handleKeyDown);
-      return () => {
-        textarea.removeEventListener('keydown', handleKeyDown);
-      };
-    }
-  }, [markdown]);
-
-  const handleEditorChange = (event) => {
-    setMarkdown(event.target.value);
-  };
-
-  const handleKeyDown = (event) => {
-    if (event.key === 'Enter') {
-      const textarea = event.target;
-      const start = textarea.selectionStart;
-      const end = textarea.selectionEnd;
-      const selectedText = textarea.value.substring(start, end);
-      const beforeCursor = textarea.value.substring(0, start);
-      const afterCursor = textarea.value.substring(end);
-
-      const lastLine = beforeCursor.split('\n').pop();
-      const unorderedListMatch = lastLine.match(/^(\s*[-*+]\s)/);
-      const orderedListMatch = lastLine.match(/^(\s*\d+\.\s)/);
-
-      if (unorderedListMatch) {
-        event.preventDefault();
-        const newText = beforeCursor + '\n' + unorderedListMatch[1] + selectedText + afterCursor;
-        setMarkdown(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + unorderedListMatch[1].length + 1;
-        }, 0);
-      } else if (orderedListMatch) {
-        event.preventDefault();
-        const number = parseInt(orderedListMatch[1], 10) + 1;
-        const newText = beforeCursor + '\n' + number + '. ' + selectedText + afterCursor;
-        setMarkdown(newText);
-        setTimeout(() => {
-          textarea.selectionStart = textarea.selectionEnd = start + number.toString().length + 3;
-        }, 0);
-      }
-    }
-  };
-
   const applyFormatting = (type) => {
-    const textarea = document.querySelector('textarea');
-    if (!textarea) return;
+    if (!editorRef.current) return;
     
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const selectedText = textarea.value.substring(start, end);
+    const selection = editorRef.current.getSelection();
+    const selectedText = selection.selectedText;
 
     const handlePopupConfirm = (data) => {
       let formattedText = '';
-      let cursorOffset = 0;
 
       if (data.type === 'link') {
-        formattedText = `[${data.text || 'Link Text'}](${data.url})`;
-        cursorOffset = data.text ? 0 : 10;
+        formattedText = `[${data.text || selectedText || 'Link Text'}](${data.url})`;
       } else if (data.type === 'image') {
         formattedText = `![${data.altText || 'Alt Text'}](${data.url})`;
-        cursorOffset = data.altText ? 0 : 9;
       }
 
-      const newMarkdown = markdown.substring(0, start) + formattedText + markdown.substring(end);
-      setMarkdown(newMarkdown);
-
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + cursorOffset, start + cursorOffset + selectedText.length);
-      }, 0);
+      editorRef.current.replaceSelection(formattedText);
+      editorRef.current.focus();
     };
 
     if (type === 'link' || type === 'image') {
@@ -152,57 +106,42 @@ function App() {
       setIsPopupVisible(true);
     } else {
       let formattedText = '';
-      let cursorOffset = 0;
 
       switch (type) {
         case 'bold':
           formattedText = `**${selectedText}**`;
-          cursorOffset = 2;
           break;
         case 'italic':
           formattedText = `*${selectedText}*`;
-          cursorOffset = 1;
           break;
         case 'heading':
           formattedText = `# ${selectedText}`;
-          cursorOffset = 2;
           break;
         case 'quote':
           formattedText = selectedText.split('\n').map(line => `> ${line}`).join('\n');
-          cursorOffset = 2;
           break;
         case 'code':
           if (selectedText.includes('\n')) {
             formattedText = `\`\`\`\n${selectedText}\n\`\`\``;
-            cursorOffset = 3;
           } else {
             formattedText = `\`${selectedText}\``;
-            cursorOffset = 1;
           }
           break;
         case 'ulist':
           formattedText = `- ${selectedText}`;
-          cursorOffset = 2;
           break;
         case 'olist':
           formattedText = `1. ${selectedText}`;
-          cursorOffset = 3;
           break;
         case 'strikethrough':
           formattedText = `~~${selectedText}~~`;
-          cursorOffset = 2;
           break;
         default:
           break;
       }
 
-      const newMarkdown = markdown.substring(0, start) + formattedText + markdown.substring(end);
-      setMarkdown(newMarkdown);
-
-      setTimeout(() => {
-        textarea.focus();
-        textarea.setSelectionRange(start + cursorOffset, start + cursorOffset + selectedText.length);
-      }, 0);
+      editorRef.current.replaceSelection(formattedText);
+      editorRef.current.focus();
     }
   };
 
@@ -221,12 +160,6 @@ function App() {
       clearAutoSave();
     };
     reader.readAsText(file);
-  };
-
-  const saveFile = () => {
-    const blob = new Blob([markdown], { type: 'text/markdown;charset=utf-8' });
-    saveAs(blob, 'document.md');
-    clearAutoSave();
   };
 
   const exportToHTML = () => {
@@ -267,6 +200,7 @@ function App() {
         applyFormatting={applyFormatting} 
         markdown={markdown}
         setMarkdown={setMarkdown}
+        editorRef={editorRef}
       />
       
       {/* Mobile view toggle */}
@@ -287,7 +221,12 @@ function App() {
       
       <div className="container">
         <div className={`editor-view ${activeView === 'editor' ? 'active' : ''}`}>
-          <Editor markdown={markdown} onChange={handleEditorChange} />
+          <EnhancedEditor 
+            ref={editorRef}
+            markdown={markdown} 
+            onChange={handleEditorChange}
+            isDarkMode={isDarkMode}
+          />
         </div>
         <div className={`preview-view ${activeView === 'preview' ? 'active' : ''}`}>
           <SyncedPreview 

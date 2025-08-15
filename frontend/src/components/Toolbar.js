@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import './Toolbar.css';
 
-function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
+function EnhancedToolbar({ applyFormatting, markdown, setMarkdown, editorRef }) {
   const [showTableModal, setShowTableModal] = useState(false);
   const [tableRows, setTableRows] = useState(3);
   const [tableCols, setTableCols] = useState(3);
@@ -38,36 +38,37 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
       table += '\n';
     }
     
-    const textarea = document.querySelector('textarea');
-    const start = textarea.selectionStart;
-    const newMarkdown = markdown.substring(0, start) + table + markdown.substring(start);
-    setMarkdown(newMarkdown);
+    if (editorRef.current) {
+      const selection = editorRef.current.getSelection();
+      editorRef.current.insertText(table, selection.start);
+      editorRef.current.focus();
+    }
+    
     setShowTableModal(false);
   };
 
   const insertHorizontalRule = () => {
-    const textarea = document.querySelector('textarea');
-    const start = textarea.selectionStart;
-    const newMarkdown = markdown.substring(0, start) + '\n---\n' + markdown.substring(start);
-    setMarkdown(newMarkdown);
+    if (editorRef.current) {
+      const selection = editorRef.current.getSelection();
+      editorRef.current.insertText('\n---\n', selection.start);
+      editorRef.current.focus();
+    }
   };
 
   const insertCheckbox = () => {
-    const textarea = document.querySelector('textarea');
-    const start = textarea.selectionStart;
-    const selectedText = textarea.value.substring(textarea.selectionStart, textarea.selectionEnd);
-    const newMarkdown = markdown.substring(0, start) + `- [ ] ${selectedText}` + markdown.substring(textarea.selectionEnd);
-    setMarkdown(newMarkdown);
+    if (editorRef.current) {
+      const selection = editorRef.current.getSelection();
+      const selectedText = selection.selectedText;
+      const checkboxText = `- [ ] ${selectedText}`;
+      editorRef.current.replaceSelection(checkboxText);
+      editorRef.current.focus();
+    }
   };
 
   // Math functions
   const insertMathEquation = (equation, isInline = true) => {
-    const textarea = document.querySelector('textarea');
-    if (!textarea) return;
+    if (!editorRef.current) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    
     let formattedEquation;
     if (isInline) {
       formattedEquation = `$${equation}$`;
@@ -75,15 +76,9 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
       formattedEquation = `\n$$\n${equation}\n$$\n`;
     }
 
-    const newMarkdown = markdown.substring(0, start) + formattedEquation + markdown.substring(end);
-    setMarkdown(newMarkdown);
-
-    // Focus back to textarea and position cursor
-    setTimeout(() => {
-      textarea.focus();
-      const newPosition = start + formattedEquation.length;
-      textarea.setSelectionRange(newPosition, newPosition);
-    }, 0);
+    const selection = editorRef.current.getSelection();
+    editorRef.current.insertText(formattedEquation, selection.start);
+    editorRef.current.focus();
 
     setShowMathDropdown(false);
   };
@@ -116,8 +111,8 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
   return (
     <div className="toolbar">
       {/* Existing buttons */}
-      <button onClick={() => applyFormatting('bold')} title="Bold"><b>B</b></button>
-      <button onClick={() => applyFormatting('italic')} title="Italic"><i>I</i></button>
+      <button onClick={() => applyFormatting('bold')} title="Bold (Ctrl+B)"><b>B</b></button>
+      <button onClick={() => applyFormatting('italic')} title="Italic (Ctrl+I)"><i>I</i></button>
       <button onClick={() => applyFormatting('heading')} title="Heading">H</button>
       <button onClick={() => applyFormatting('quote')} title="Blockquote">&quot;</button>
       <button onClick={() => applyFormatting('strikethrough')} title="Strikethrough"><s>S</s></button>
@@ -133,7 +128,7 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
       <div className="toolbar-separator">|</div>
       
       {/* Media buttons */}
-      <button onClick={() => applyFormatting('link')} title="Link">🔗</button>
+      <button onClick={() => applyFormatting('link')} title="Link (Ctrl+K)">🔗</button>
       <button onClick={() => applyFormatting('image')} title="Image">🖼️</button>
       
       <div className="toolbar-separator">|</div>
@@ -282,4 +277,4 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown }) {
   );
 }
 
-export default EnhancedToolbar;
+export default EnhancedToolbar; 
