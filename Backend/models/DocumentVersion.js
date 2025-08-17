@@ -3,12 +3,12 @@ const { sequelize } = require('../config/database');
 
 const DocumentVersion = sequelize.define('DocumentVersion', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.STRING, // Changed from UUID to STRING for SQLite
+    defaultValue: () => require('uuid').v4(), // Generate UUID as string
     primaryKey: true
   },
   documentId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING, // Changed from UUID to STRING
     allowNull: false,
     field: 'document_id',
     references: {
@@ -34,7 +34,7 @@ const DocumentVersion = sequelize.define('DocumentVersion', {
     field: 'change_log'
   },
   createdBy: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING, // Changed from UUID to STRING
     allowNull: false,
     field: 'created_by',
     references: {

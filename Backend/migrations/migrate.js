@@ -1,5 +1,5 @@
 const { sequelize } = require('../config/database');
-require('../models'); // This will load all models and associations
+require('../models');
 
 const migrate = async () => {
   try {
@@ -21,4 +21,4 @@ const migrate = async () => {
   }
 };
 
-migrate();s
+migrate();

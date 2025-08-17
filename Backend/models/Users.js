@@ -4,8 +4,8 @@ const { sequelize } = require('../config/database');
 
 const User = sequelize.define('User', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.STRING, // Changed from UUID to STRING for SQLite
+    defaultValue: () => require('uuid').v4(), // Generate UUID as string
     primaryKey: true
   },
   username: {
@@ -57,11 +57,30 @@ const User = sequelize.define('User', {
     field: 'last_login'
   },
   preferences: {
-    type: DataTypes.JSONB,
-    defaultValue: {
-      theme: 'light',
-      autoSave: true,
-      lineBreakMode: 'simple'
+    type: DataTypes.TEXT, // Changed from JSONB to TEXT
+    defaultValue: '{"theme":"light","autoSave":true,"lineBreakMode":"simple"}',
+    get() {
+      const value = this.getDataValue('preferences');
+      try {
+        return value ? JSON.parse(value) : {
+          theme: 'light',
+          autoSave: true,
+          lineBreakMode: 'simple'
+        };
+      } catch (e) {
+        return {
+          theme: 'light',
+          autoSave: true,
+          lineBreakMode: 'simple'
+        };
+      }
+    },
+    set(value) {
+      this.setDataValue('preferences', JSON.stringify(value || {
+        theme: 'light',
+        autoSave: true,
+        lineBreakMode: 'simple'
+      }));
     }
   }
 }, {

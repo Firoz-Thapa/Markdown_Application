@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const { body, validationResult } = require('express-validator');
 const { User } = require('../models');
+const { Op } = require('sequelize'); // Added missing import
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
@@ -54,7 +55,7 @@ router.post('/register', [
     // Check if user already exists
     const existingUser = await User.findOne({
       where: {
-        $or: [{ email }, { username }]
+        [Op.or]: [{ email }, { username }] // Fixed operator
       }
     });
 
@@ -119,7 +120,7 @@ router.post('/login', [
     // Find user by email or username
     const user = await User.findOne({
       where: {
-        $or: [
+        [Op.or]: [ // Fixed operator
           { email: login },
           { username: login }
         ]

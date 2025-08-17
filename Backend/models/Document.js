@@ -3,8 +3,8 @@ const { sequelize } = require('../config/database');
 
 const Document = sequelize.define('Document', {
   id: {
-    type: DataTypes.UUID,
-    defaultValue: DataTypes.UUIDV4,
+    type: DataTypes.STRING, // Changed from UUID to STRING for SQLite
+    defaultValue: () => require('uuid').v4(), // Generate UUID as string
     primaryKey: true
   },
   title: {
@@ -33,15 +33,45 @@ const Document = sequelize.define('Document', {
     field: 'is_template'
   },
   tags: {
-    type: DataTypes.ARRAY(DataTypes.STRING),
-    defaultValue: []
+    type: DataTypes.TEXT, // Changed from ARRAY to TEXT - will store as JSON string
+    defaultValue: '[]',
+    get() {
+      const value = this.getDataValue('tags');
+      try {
+        return value ? JSON.parse(value) : [];
+      } catch (e) {
+        return [];
+      }
+    },
+    set(value) {
+      this.setDataValue('tags', JSON.stringify(value || []));
+    }
   },
   metadata: {
-    type: DataTypes.JSONB,
-    defaultValue: {
-      wordCount: 0,
-      characterCount: 0,
-      readingTime: 0
+    type: DataTypes.TEXT, // Changed from JSONB to TEXT
+    defaultValue: '{"wordCount":0,"characterCount":0,"readingTime":0}',
+    get() {
+      const value = this.getDataValue('metadata');
+      try {
+        return value ? JSON.parse(value) : {
+          wordCount: 0,
+          characterCount: 0,
+          readingTime: 0
+        };
+      } catch (e) {
+        return {
+          wordCount: 0,
+          characterCount: 0,
+          readingTime: 0
+        };
+      }
+    },
+    set(value) {
+      this.setDataValue('metadata', JSON.stringify(value || {
+        wordCount: 0,
+        characterCount: 0,
+        readingTime: 0
+      }));
     }
   },
   version: {
@@ -54,7 +84,7 @@ const Document = sequelize.define('Document', {
     field: 'last_modified'
   },
   userId: {
-    type: DataTypes.UUID,
+    type: DataTypes.STRING, // Changed from UUID to STRING
     allowNull: false,
     field: 'user_id',
     references: {

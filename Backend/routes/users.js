@@ -1,6 +1,7 @@
 const express = require('express');
 const { query, validationResult } = require('express-validator');
 const { User, Document } = require('../models');
+const { Op } = require('sequelize'); // Added missing import
 const { authenticateToken } = require('../middleware/auth');
 
 const router = express.Router();
