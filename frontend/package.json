@@ -1,6 +1,7 @@
 {
-  "name": "markdown-application",
+  "name": "markdown-workspace",
   "version": "0.1.0",
+  "homepage": "https://firoz-thapa.github.io/markdown-workspace",
   "private": true,
   "dependencies": {
     "@codemirror/lang-markdown": "^6.3.3",

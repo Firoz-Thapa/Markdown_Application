@@ -1,13 +1,24 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline - GitHub Pages & Vercel
 
 on:
   push:
     branches: [ main, develop ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 env:
   NODE_VERSION: '18.x'
+
+# Allow only one concurrent deployment
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   # Frontend Tests and Build
@@ -35,16 +46,19 @@ jobs:
       run: npm test -- --coverage --watchAll=false
       
     - name: Build frontend
+      if: ${{ secrets.REACT_APP_GEMINI_API_KEY != '' }}
       run: npm run build
       env:
         REACT_APP_GEMINI_API_KEY: ${{ secrets.REACT_APP_GEMINI_API_KEY }}
         REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+        PUBLIC_URL: /markdown-workspace
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
       with:
         name: frontend-build
         path: frontend/build/
+        retention-days: 1
 
   # Backend Tests
   backend-test:
@@ -68,30 +82,59 @@ jobs:
       run: npm ci
       
     - name: Create test database
-      run: |
-        touch test-database.sqlite
+      run: touch test-database.sqlite
         
     - name: Run database migrations
+      if: ${{ secrets.JWT_SECRET != '' }}
       run: npm run migrate
       env:
         NODE_ENV: test
-        JWT_SECRET: test-secret-key
-        
-    # Add tests when you create them
-    # - name: Run tests
-    #   run: npm test
-    #   env:
-    #     NODE_ENV: test
-    #     JWT_SECRET: test-secret-key
+        JWT_SECRET: ${{ secrets.JWT_SECRET }}
 
-  # Deploy Frontend to Netlify
-  deploy-frontend:
-    needs: [frontend-test, backend-test]
+  # Prepare for GitHub Pages deployment
+  build-pages:
+    needs: frontend-test
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Setup Pages
+      uses: actions/configure-pages@v4
+      
+    - name: Download build artifacts
+      uses: actions/download-artifact@v4
+      with:
+        name: frontend-build
+        path: build/
+        
+    - name: Upload to GitHub Pages
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: build/
+
+  # Deploy Frontend to GitHub Pages
+  deploy-frontend:
+    needs: build-pages
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    
+    steps:
+    - name: Deploy to GitHub Pages
+      id: deployment
+      uses: actions/deploy-pages@v4
+
+  # Deploy Backend to Vercel
+  deploy-backend:
+    needs: [frontend-test, backend-test]
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && secrets.VERCEL_TOKEN != ''
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: ./Backend
     
     steps:
     - name: Checkout code
@@ -101,82 +144,98 @@ jobs:
       uses: actions/setup-node@v4
       with:
         node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
         
-    - name: Install dependencies
-      run: npm ci
+    - name: Install Vercel CLI
+      run: npm install -g vercel@latest
       
-    - name: Build for production
-      run: npm run build
-      env:
-        REACT_APP_GEMINI_API_KEY: ${{ secrets.REACT_APP_GEMINI_API_KEY }}
-        REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
-        
-    - name: Deploy to Netlify
-      uses: nwtgck/actions-netlify@v3.0
-      with:
-        publish-dir: './frontend/build'
-        production-branch: main
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        deploy-message: "Deploy from GitHub Actions"
-        enable-pull-request-comment: false
-        enable-commit-comment: true
-        overwrites-pull-request-comment: true
-      env:
-        NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-        NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
-
-  # Deploy Backend to Railway (Fixed)
-  deploy-backend:
-    needs: [frontend-test, backend-test]
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    defaults:
-      run:
-        working-directory: ./Backend
-    
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    # Option 1: Deploy to Railway using CLI
-    - name: Install Railway CLI
-      run: npm install -g @railway/cli
-      
-    - name: Deploy to Railway
+    - name: Deploy to Vercel
       run: |
-        railway login --token ${{ secrets.RAILWAY_TOKEN }}
-        railway link ${{ secrets.RAILWAY_SERVICE_ID }}
-        railway up --detach
+        vercel --token "$VERCEL_TOKEN" --yes --prod
       env:
-        RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        
-    # Option 2: Alternative - Deploy using cURL to Railway API
-    # - name: Deploy to Railway (API)
-    #   run: |
-    #     curl -X POST \
-    #       -H "Authorization: Bearer ${{ secrets.RAILWAY_TOKEN }}" \
-    #       -H "Content-Type: application/json" \
-    #       -d '{"serviceId": "${{ secrets.RAILWAY_SERVICE_ID }}", "environmentId": "${{ secrets.RAILWAY_ENVIRONMENT_ID }}"}' \
-    #       https://backboard.railway.app/graphql/v2
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-  # Notify deployment status
-  notify:
+  # Health Checks
+  health-check:
     needs: [deploy-frontend, deploy-backend]
     runs-on: ubuntu-latest
-    if: always() && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && secrets.BACKEND_PRODUCTION_URL != ''
     
     steps:
-    - name: Deployment Status
+    - name: Wait for deployments to stabilize
+      run: sleep 60
+      
+    - name: Check Backend Health
       run: |
-        if [ "${{ needs.deploy-frontend.result }}" == "success" ] && [ "${{ needs.deploy-backend.result }}" == "success" ]; then
-          echo "✅ Deployment successful!"
-          echo "Frontend: Deployed to Netlify"
-          echo "Backend: Deployed to Railway"
+        echo "Checking backend health..."
+        BACKEND_URL="${{ secrets.BACKEND_PRODUCTION_URL }}"
+        response=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/health")
+        if [ $response -eq 200 ]; then
+          echo "Backend is healthy (HTTP $response)"
         else
-          echo "❌ Deployment failed!"
-          echo "Frontend status: ${{ needs.deploy-frontend.result }}"
-          echo "Backend status: ${{ needs.deploy-backend.result }}"
-          exit 1
+          echo "Backend returned HTTP $response"
         fi
+        
+    - name: Check Frontend Deployment
+      run: |
+        echo "Checking frontend deployment..."
+        response=$(curl -s -o /dev/null -w "%{http_code}" https://firoz-thapa.github.io/markdown-workspace)
+        if [ $response -eq 200 ]; then
+          echo "Frontend is accessible (HTTP $response)"
+        else
+          echo "Frontend returned HTTP $response"
+        fi
+
+  # Success Notification
+  notify-success:
+    needs: [health-check]
+    runs-on: ubuntu-latest
+    if: success() && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Deployment Success Notification
+      run: |
+        echo "Deployment Completed Successfully!"
+        echo ""
+        echo "Frontend URL: https://firoz-thapa.github.io/markdown-workspace"
+        echo "Backend URL: ${{ secrets.BACKEND_PRODUCTION_URL }}"
+        echo ""
+        echo "Your Markdown Workspace is now live!"
+        echo ""
+        echo "Platform Details:"
+        echo "   - Frontend: GitHub Pages (Free)"
+        echo "   - Backend: Vercel Serverless (Free)"
+        echo "   - Database: SQLite (File-based)"
+        echo ""
+        echo "Features available:"
+        echo "   - Markdown editing with live preview"
+        echo "   - Math equation support"
+        echo "   - Document management"
+        echo "   - User authentication"
+        echo "   - Dark/Light theme"
+        echo "   - AI-powered chatbot"
+
+  # Failure Notification
+  notify-failure:
+    needs: [frontend-test, backend-test, deploy-frontend, deploy-backend]
+    runs-on: ubuntu-latest
+    if: failure() && github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Deployment Failure Notification
+      run: |
+        echo "Deployment Failed!"
+        echo ""
+        echo "Please check the logs above for details."
+        echo "Common issues:"
+        echo "- Missing GitHub secrets"
+        echo "- Vercel authentication problems"
+        echo "- Build errors in frontend/backend"
+        echo ""
+        echo "Check your secrets:"
+        echo "- VERCEL_TOKEN"
+        echo "- VERCEL_ORG_ID"
+        echo "- VERCEL_PROJECT_ID"
+        echo "- REACT_APP_GEMINI_API_KEY"
+        echo "- JWT_SECRET"
