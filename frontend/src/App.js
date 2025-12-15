@@ -22,7 +22,7 @@ function App() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const [activeView, setActiveView] = useState('editor');
-  const [simpleLineBreaks, setSimpleLineBreaks] = useState(true); // New state for line break mode
+  const [simpleLineBreaks, setSimpleLineBreaks] = useState(true);
   
   const editorRef = useRef(null);
 
@@ -34,7 +34,7 @@ function App() {
     return new showdown.Converter({ 
       tables: true, 
       strikethrough: true,
-      simpleLineBreaks: simpleLineBreaks,  // Dynamic based on state
+      simpleLineBreaks: simpleLineBreaks,
       headerLevelStart: 1,
       ghCodeBlocks: true,
       tasklists: true,
@@ -99,14 +99,13 @@ function App() {
   const applyFormatting = (type) => {
     if (!editorRef.current) return;
     
-    const selection = editorRef.current.getSelection();
-    const selectedText = selection.selectedText;
+    const sel = editorRef.current.getSelection();
+    const selectedText = sel.selectedText;
 
     const handlePopupConfirm = (data) => {
       let formattedText = '';
 
       if (data.type === 'link') {
-        // Use the provided text, or selected text, or default to 'Link Text'
         const displayText = data.text || selectedText || 'Link Text';
         formattedText = `[${displayText}](${data.url})`;
       } else if (data.type === 'image') {
@@ -128,7 +127,6 @@ function App() {
       switch (type) {
         case 'bold':
           formattedText = `**${selectedText}**`;
-          // If no text selected, place cursor between the asterisks
           cursorOffset = selectedText ? formattedText.length : 2;
           break;
         case 'italic':

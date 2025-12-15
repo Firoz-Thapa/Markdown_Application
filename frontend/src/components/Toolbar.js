@@ -39,8 +39,8 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown, editorRef }) 
     }
     
     if (editorRef.current) {
-      const selection = editorRef.current.getSelection();
-      editorRef.current.insertText(table, selection.start);
+      const sel = editorRef.current.getSelection();
+      editorRef.current.insertText(table, sel.start);
       editorRef.current.focus();
     }
     
@@ -49,16 +49,16 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown, editorRef }) 
 
   const insertHorizontalRule = () => {
     if (editorRef.current) {
-      const selection = editorRef.current.getSelection();
-      editorRef.current.insertText('\n---\n', selection.start);
+      const sel = editorRef.current.getSelection();
+      editorRef.current.insertText('\n---\n', sel.start);
       editorRef.current.focus();
     }
   };
 
   const insertCheckbox = () => {
     if (editorRef.current) {
-      const selection = editorRef.current.getSelection();
-      const selectedText = selection.selectedText;
+      const sel = editorRef.current.getSelection();
+      const selectedText = sel.selectedText;
       const checkboxText = `- [ ] ${selectedText}`;
       // Place cursor at the end if there's selected text, otherwise after the checkbox
       const cursorOffset = selectedText ? checkboxText.length : 6;
@@ -84,7 +84,6 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown, editorRef }) 
       cursorOffset = equation ? formattedEquation.length : 4;
     }
 
-    const selection = editorRef.current.getSelection();
     editorRef.current.replaceSelection(formattedEquation, cursorOffset);
     editorRef.current.focus();
 

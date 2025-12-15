@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useImperativeHandle, forwardRef, useCallback } from 'react';
+import React, { useEffect, useRef, useImperativeHandle, forwardRef } from 'react';
 import { EditorView, keymap, lineNumbers, highlightActiveLine, dropCursor, rectangularSelection, crosshairCursor } from '@codemirror/view';
 import { EditorState, Compartment } from '@codemirror/state';
 import { markdown } from '@codemirror/lang-markdown';
@@ -9,10 +9,12 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
   const viewRef = useRef(null);
   const containerRef = useRef(null);
   const themeCompartment = useRef(new Compartment());
+  const isInternalChange = useRef(false);
+  const onChangeRef = useRef(onChange);
 
-  // Memoize onChange to prevent unnecessary re-renders
-  const memoizedOnChange = useCallback((content) => {
-    onChange({ target: { value: content } });
+  // Keep onChange ref updated
+  useEffect(() => {
+    onChangeRef.current = onChange;
   }, [onChange]);
 
   // Expose editor methods to parent component
@@ -61,10 +63,10 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
       {
         key: 'Tab',
         run: ({ state, dispatch }) => {
-          const selection = state.selection.main;
+          const sel = state.selection.main;
           dispatch(state.update({
-            changes: { from: selection.from, to: selection.to, insert: '  ' },
-            selection: { anchor: selection.from + 2 }
+            changes: { from: sel.from, to: sel.to, insert: '  ' },
+            selection: { anchor: sel.from + 2 }
           }));
           return true;
         }
@@ -74,17 +76,17 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
         mac: 'Cmd-b',
         run: () => {
           if (!viewRef.current) return false;
-          const selection = viewRef.current.state.selection.main;
-          const selectedText = viewRef.current.state.doc.sliceString(selection.from, selection.to);
+          const sel = viewRef.current.state.selection.main;
+          const selectedText = viewRef.current.state.doc.sliceString(sel.from, sel.to);
           const boldText = `**${selectedText}**`;
           
           // Calculate cursor position - in the middle if no selection, at end if there is selection
           const cursorPos = selectedText 
-            ? selection.from + boldText.length 
-            : selection.from + 2;
+            ? sel.from + boldText.length 
+            : sel.from + 2;
           
           const transaction = viewRef.current.state.update({
-            changes: { from: selection.from, to: selection.to, insert: boldText },
+            changes: { from: sel.from, to: sel.to, insert: boldText },
             selection: { anchor: cursorPos }
           });
           
@@ -97,17 +99,17 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
         mac: 'Cmd-i',
         run: () => {
           if (!viewRef.current) return false;
-          const selection = viewRef.current.state.selection.main;
-          const selectedText = viewRef.current.state.doc.sliceString(selection.from, selection.to);
+          const sel = viewRef.current.state.selection.main;
+          const selectedText = viewRef.current.state.doc.sliceString(sel.from, sel.to);
           const italicText = `*${selectedText}*`;
           
           // Calculate cursor position - in the middle if no selection, at end if there is selection
           const cursorPos = selectedText 
-            ? selection.from + italicText.length 
-            : selection.from + 1;
+            ? sel.from + italicText.length 
+            : sel.from + 1;
           
           const transaction = viewRef.current.state.update({
-            changes: { from: selection.from, to: selection.to, insert: italicText },
+            changes: { from: sel.from, to: sel.to, insert: italicText },
             selection: { anchor: cursorPos }
           });
           
@@ -120,15 +122,15 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
         mac: 'Cmd-k',
         run: () => {
           if (!viewRef.current) return false;
-          const selection = viewRef.current.state.selection.main;
-          const selectedText = viewRef.current.state.doc.sliceString(selection.from, selection.to);
+          const sel = viewRef.current.state.selection.main;
+          const selectedText = viewRef.current.state.doc.sliceString(sel.from, sel.to);
           const linkText = `[${selectedText || 'Link Text'}](url)`;
           
           const transaction = viewRef.current.state.update({
-            changes: { from: selection.from, to: selection.to, insert: linkText },
+            changes: { from: sel.from, to: sel.to, insert: linkText },
             selection: { 
-              anchor: selection.from + linkText.length - 4, 
-              head: selection.from + linkText.length - 1 
+              anchor: sel.from + linkText.length - 4, 
+              head: sel.from + linkText.length - 1 
             }
           });
           
@@ -149,8 +151,9 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
       markdownKeymap,
       EditorView.updateListener.of((update) => {
         if (update.docChanged) {
+          isInternalChange.current = true;
           const content = update.state.doc.toString();
-          memoizedOnChange(content);
+          onChangeRef.current({ target: { value: content } });
         }
       }),
       EditorView.theme({
@@ -174,17 +177,16 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
           height: '100%',
           overflow: 'auto'
         },
-        // Markdown-specific styling
         '.cm-line': {
           lineHeight: '1.6'
         }
       }),
-      themeCompartment.current.of(isDarkMode ? oneDark : [])
+      themeCompartment.current.of([])
     ];
 
     // Create editor state
     const state = EditorState.create({
-      doc: markdownContent || '',
+      doc: '',
       extensions: basicExtensions
     });
 
@@ -204,7 +206,7 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
         viewRef.current = null;
       }
     };
-  }, []); // Empty dependency array - only run once
+  }, []);
 
   // Update theme when isDarkMode changes
   useEffect(() => {
@@ -217,6 +219,11 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
 
   // Update content when markdownContent prop changes (but not during typing)
   useEffect(() => {
+    if (isInternalChange.current) {
+      isInternalChange.current = false;
+      return;
+    }
+    
     if (viewRef.current && markdownContent !== viewRef.current.state.doc.toString()) {
       const transaction = viewRef.current.state.update({
         changes: {
