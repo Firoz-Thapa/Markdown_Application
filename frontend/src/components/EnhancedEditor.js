@@ -34,12 +34,13 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
       });
       viewRef.current.dispatch(transaction);
     },
-    replaceSelection: (text) => {
+    replaceSelection: (text, cursorOffset) => {
       if (!viewRef.current) return;
       const { from, to } = viewRef.current.state.selection.main;
       const transaction = viewRef.current.state.update({
         changes: { from, to, insert: text },
-        selection: { anchor: from + text.length }
+        // If cursorOffset is provided, use it; otherwise place cursor at end
+        selection: { anchor: from + (cursorOffset !== undefined ? cursorOffset : text.length) }
       });
       viewRef.current.dispatch(transaction);
     },
@@ -77,9 +78,14 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
           const selectedText = viewRef.current.state.doc.sliceString(selection.from, selection.to);
           const boldText = `**${selectedText}**`;
           
+          // Calculate cursor position - in the middle if no selection, at end if there is selection
+          const cursorPos = selectedText 
+            ? selection.from + boldText.length 
+            : selection.from + 2;
+          
           const transaction = viewRef.current.state.update({
             changes: { from: selection.from, to: selection.to, insert: boldText },
-            selection: { anchor: selection.from + 2, head: selection.from + 2 + selectedText.length }
+            selection: { anchor: cursorPos }
           });
           
           viewRef.current.dispatch(transaction);
@@ -95,9 +101,14 @@ const EnhancedEditor = forwardRef(({ markdown: markdownContent, onChange, isDark
           const selectedText = viewRef.current.state.doc.sliceString(selection.from, selection.to);
           const italicText = `*${selectedText}*`;
           
+          // Calculate cursor position - in the middle if no selection, at end if there is selection
+          const cursorPos = selectedText 
+            ? selection.from + italicText.length 
+            : selection.from + 1;
+          
           const transaction = viewRef.current.state.update({
             changes: { from: selection.from, to: selection.to, insert: italicText },
-            selection: { anchor: selection.from + 1, head: selection.from + 1 + selectedText.length }
+            selection: { anchor: cursorPos }
           });
           
           viewRef.current.dispatch(transaction);

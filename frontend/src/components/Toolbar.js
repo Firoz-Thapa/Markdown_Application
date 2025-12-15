@@ -60,7 +60,9 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown, editorRef }) 
       const selection = editorRef.current.getSelection();
       const selectedText = selection.selectedText;
       const checkboxText = `- [ ] ${selectedText}`;
-      editorRef.current.replaceSelection(checkboxText);
+      // Place cursor at the end if there's selected text, otherwise after the checkbox
+      const cursorOffset = selectedText ? checkboxText.length : 6;
+      editorRef.current.replaceSelection(checkboxText, cursorOffset);
       editorRef.current.focus();
     }
   };
@@ -70,21 +72,32 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown, editorRef }) 
     if (!editorRef.current) return;
 
     let formattedEquation;
+    let cursorOffset;
+    
     if (isInline) {
       formattedEquation = `$${equation}$`;
+      // If equation is empty or placeholder, place cursor in the middle
+      cursorOffset = equation ? formattedEquation.length : 1;
     } else {
       formattedEquation = `\n$$\n${equation}\n$$\n`;
+      // Place cursor after the first $$ and newline if no equation
+      cursorOffset = equation ? formattedEquation.length : 4;
     }
 
     const selection = editorRef.current.getSelection();
-    editorRef.current.insertText(formattedEquation, selection.start);
+    editorRef.current.replaceSelection(formattedEquation, cursorOffset);
     editorRef.current.focus();
 
     setShowMathDropdown(false);
   };
 
   const insertCustomMath = () => {
-    if (!mathInput.trim()) return;
+    if (!mathInput.trim()) {
+      // If no input, insert empty math delimiters with cursor in middle
+      insertMathEquation('', mathType === 'inline');
+      setShowMathModal(false);
+      return;
+    }
     
     insertMathEquation(mathInput, mathType === 'inline');
     setMathInput('');
@@ -277,4 +290,4 @@ function EnhancedToolbar({ applyFormatting, markdown, setMarkdown, editorRef }) 
   );
 }
 
-export default EnhancedToolbar; 
+export default EnhancedToolbar;

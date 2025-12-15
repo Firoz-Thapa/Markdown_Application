@@ -123,41 +123,52 @@ function App() {
       setIsPopupVisible(true);
     } else {
       let formattedText = '';
+      let cursorOffset;
 
       switch (type) {
         case 'bold':
           formattedText = `**${selectedText}**`;
+          // If no text selected, place cursor between the asterisks
+          cursorOffset = selectedText ? formattedText.length : 2;
           break;
         case 'italic':
           formattedText = `*${selectedText}*`;
+          cursorOffset = selectedText ? formattedText.length : 1;
           break;
         case 'heading':
           formattedText = `# ${selectedText}`;
+          cursorOffset = formattedText.length;
           break;
         case 'quote':
           formattedText = selectedText.split('\n').map(line => `> ${line}`).join('\n');
+          cursorOffset = formattedText.length;
           break;
         case 'code':
           if (selectedText.includes('\n')) {
             formattedText = `\`\`\`\n${selectedText}\n\`\`\``;
+            cursorOffset = selectedText ? formattedText.length : 4;
           } else {
             formattedText = `\`${selectedText}\``;
+            cursorOffset = selectedText ? formattedText.length : 1;
           }
           break;
         case 'ulist':
           formattedText = `- ${selectedText}`;
+          cursorOffset = formattedText.length;
           break;
         case 'olist':
           formattedText = `1. ${selectedText}`;
+          cursorOffset = formattedText.length;
           break;
         case 'strikethrough':
           formattedText = `~~${selectedText}~~`;
+          cursorOffset = selectedText ? formattedText.length : 2;
           break;
         default:
           break;
       }
 
-      editorRef.current.replaceSelection(formattedText);
+      editorRef.current.replaceSelection(formattedText, cursorOffset);
       editorRef.current.focus();
     }
   };
