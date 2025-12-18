@@ -5,39 +5,34 @@ const rateLimit = require('express-rate-limit');
 const dotenv = require('dotenv');
 const { sequelize } = require('./config/database');
 
-// Load environment variables
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Security middleware
 app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({
-  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, 
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, 
   message: 'Too many requests from this IP, please try again later.'
 });
 app.use('/api/', limiter);
 
-// CORS configuration
+
 app.use(cors({
   origin: process.env.FRONTEND_URL || 'http://localhost:3000',
   credentials: true
 }));
 
-// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/documents', require('./routes/documents'));
 app.use('/api/users', require('./routes/users'));
 
-// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
     status: 'OK', 
@@ -46,7 +41,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   
@@ -73,7 +67,6 @@ app.use((err, req, res, next) => {
   });
 });
 
-// 404 handler
 app.use('*', (req, res) => {
   res.status(404).json({
     success: false,
@@ -81,53 +74,46 @@ app.use('*', (req, res) => {
   });
 });
 
-// Database connection and server startup
 const startServer = async () => {
   try {
-    // Test database connection
     await sequelize.authenticate();
-    console.log('✅ Database connection established successfully.');
+    console.log('Database connection established successfully.');
     
-    // Sync database models (create tables if they don't exist)
     if (process.env.NODE_ENV === 'development') {
       await sequelize.sync({ alter: true });
-      console.log('✅ Database models synchronized.');
+      console.log('Database models synchronized.');
     }
     
-    // Start server
     app.listen(PORT, () => {
-      console.log(`🚀 Server is running on port ${PORT}`);
-      console.log(`📖 API Documentation: http://localhost:${PORT}/api/health`);
-      console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+      console.log(`Server is running on port ${PORT}`);
+      console.log(`API Documentation: http://localhost:${PORT}/api/health`);
+      console.log(`Environment: ${process.env.NODE_ENV}`);
     });
     
   } catch (error) {
-    console.error('❌ Unable to start server:', error);
+    console.error('Unable to start server:', error);
     process.exit(1);
   }
 };
 
-// Handle unhandled promise rejections
 process.on('unhandledRejection', (err, promise) => {
-  console.error('❌ Unhandled Promise Rejection:', err);
+  console.error('Unhandled Promise Rejection:', err);
   process.exit(1);
 });
 
-// Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('❌ Uncaught Exception:', err);
+  console.error('Uncaught Exception:', err);
   process.exit(1);
 });
 
-// Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('\n🛑 Received SIGINT. Graceful shutdown...');
+  console.log('\nReceived SIGINT. Graceful shutdown...');
   try {
     await sequelize.close();
-    console.log('✅ Database connection closed.');
+    console.log('Database connection closed.');
     process.exit(0);
   } catch (error) {
-    console.error('❌ Error during shutdown:', error);
+    console.error('Error during shutdown:', error);
     process.exit(1);
   }
 });

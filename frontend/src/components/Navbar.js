@@ -6,7 +6,6 @@ function Navbar({ newFile, openFile, saveFile, exportToPDF, exportToHTML, toggle
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -69,7 +68,6 @@ function Navbar({ newFile, openFile, saveFile, exportToPDF, exportToHTML, toggle
             {isDarkMode ? '☀️' : '🌙'}
           </button>
         </li>
-        {/* Save Status Indicator */}
         <li className="save-indicator-wrapper">
           <SaveIndicator status={saveStatus} />
         </li>

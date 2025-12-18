@@ -2,7 +2,6 @@ import React from 'react';
 import './SaveIndicator.css';
 
 const SaveIndicator = ({ status }) => {
-  // status can be: 'idle', 'saving', 'saved', 'offline', 'error'
   
   const getIcon = () => {
     switch (status) {

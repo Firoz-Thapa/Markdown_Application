@@ -19,13 +19,10 @@ export const useAutoSave = (markdown, delay = 1500) => {
       clearTimeout(savedTimeoutRef.current);
     }
 
-    // Show saving status after a brief typing pause
     setSaveStatus('saving');
 
-    // Set new timeout for actual save
     timeoutRef.current = setTimeout(() => {
       try {
-        // Check if we're online
         if (!navigator.onLine) {
           setSaveStatus('offline');
           return;
@@ -37,7 +34,6 @@ export const useAutoSave = (markdown, delay = 1500) => {
         
         setSaveStatus('saved');
         
-        // Reset to idle after 2 seconds
         savedTimeoutRef.current = setTimeout(() => {
           setSaveStatus('idle');
         }, 2000);
@@ -46,14 +42,12 @@ export const useAutoSave = (markdown, delay = 1500) => {
         console.error('Failed to auto-save:', error);
         setSaveStatus('error');
         
-        // Reset error status after 3 seconds
         savedTimeoutRef.current = setTimeout(() => {
           setSaveStatus('idle');
         }, 3000);
       }
     }, delay);
 
-    // Cleanup
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
@@ -61,7 +55,6 @@ export const useAutoSave = (markdown, delay = 1500) => {
     };
   }, [markdown, delay]);
 
-  // Listen for online/offline events
   useEffect(() => {
     const handleOnline = () => {
       if (saveStatus === 'offline') {
@@ -82,7 +75,6 @@ export const useAutoSave = (markdown, delay = 1500) => {
     };
   }, [saveStatus]);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (savedTimeoutRef.current) {
@@ -94,7 +86,6 @@ export const useAutoSave = (markdown, delay = 1500) => {
   return saveStatus;
 };
 
-// Function to recover auto-saved content
 export const recoverAutoSave = () => {
   try {
     const saved = localStorage.getItem('markdown-autosave');
@@ -105,7 +96,6 @@ export const recoverAutoSave = () => {
       const now = new Date();
       const hoursDiff = (now - saveTime) / (1000 * 60 * 60);
       
-      // Only recover if saved within last 24 hours
       if (hoursDiff < 24) {
         return {
           content: saved,
@@ -120,7 +110,6 @@ export const recoverAutoSave = () => {
   }
 };
 
-// Clear auto-save
 export const clearAutoSave = () => {
   try {
     localStorage.removeItem('markdown-autosave');
