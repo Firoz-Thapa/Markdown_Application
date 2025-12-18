@@ -1,23 +1,55 @@
-import { useEffect, useRef } from 'react';
-
-// Custom hook for auto-saving
-export const useAutoSave = (markdown, delay = 2000) => {
+import { useEffect, useRef, useState, useCallback } from 'react';
+export const useAutoSave = (markdown, delay = 1500) => {
+  const [saveStatus, setSaveStatus] = useState('idle'); 
   const timeoutRef = useRef(null);
+  const savedTimeoutRef = useRef(null);
+  const lastSavedContent = useRef(markdown);
 
   useEffect(() => {
-    // Clear existing timeout
+    // Don't save if content hasn't changed
+    if (markdown === lastSavedContent.current) {
+      return;
+    }
+
+    // Clear existing timeouts
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);
     }
+    if (savedTimeoutRef.current) {
+      clearTimeout(savedTimeoutRef.current);
+    }
 
-    // Set new timeout
+    // Show saving status after a brief typing pause
+    setSaveStatus('saving');
+
+    // Set new timeout for actual save
     timeoutRef.current = setTimeout(() => {
       try {
+        // Check if we're online
+        if (!navigator.onLine) {
+          setSaveStatus('offline');
+          return;
+        }
+
         localStorage.setItem('markdown-autosave', markdown);
         localStorage.setItem('markdown-autosave-timestamp', Date.now().toString());
-        console.log('Auto-saved at', new Date().toLocaleTimeString());
+        lastSavedContent.current = markdown;
+        
+        setSaveStatus('saved');
+        
+        // Reset to idle after 2 seconds
+        savedTimeoutRef.current = setTimeout(() => {
+          setSaveStatus('idle');
+        }, 2000);
+        
       } catch (error) {
         console.error('Failed to auto-save:', error);
+        setSaveStatus('error');
+        
+        // Reset error status after 3 seconds
+        savedTimeoutRef.current = setTimeout(() => {
+          setSaveStatus('idle');
+        }, 3000);
       }
     }, delay);
 
@@ -28,6 +60,38 @@ export const useAutoSave = (markdown, delay = 2000) => {
       }
     };
   }, [markdown, delay]);
+
+  // Listen for online/offline events
+  useEffect(() => {
+    const handleOnline = () => {
+      if (saveStatus === 'offline') {
+        setSaveStatus('idle');
+      }
+    };
+
+    const handleOffline = () => {
+      setSaveStatus('offline');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [saveStatus]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (savedTimeoutRef.current) {
+        clearTimeout(savedTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  return saveStatus;
 };
 
 // Function to recover auto-saved content

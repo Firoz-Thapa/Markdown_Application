@@ -6,6 +6,7 @@ import EnhancedToolbar from './components/Toolbar';
 import Popup from './components/Popup';
 import Chatbot from './components/Chatbot';
 import DocumentStats from './components/DocumentStats';
+import SaveIndicator from './components/SaveIndicator';
 import { useAutoSave, recoverAutoSave, clearAutoSave } from './hooks/useAutoSave';
 import mathJaxManager from './utils/mathUtils';
 import { saveAs } from 'file-saver';
@@ -26,8 +27,8 @@ function App() {
   
   const editorRef = useRef(null);
 
-  // Auto-save functionality
-  useAutoSave(markdown);
+  // Auto-save functionality - now returns status
+  const saveStatus = useAutoSave(markdown);
 
   // Initialize Showdown converter - will be updated based on line break mode
   const getConverter = useCallback(() => {
@@ -221,6 +222,7 @@ function App() {
         exportToHTML={exportToHTML}
         toggleDarkMode={toggleDarkMode}
         isDarkMode={isDarkMode}
+        saveStatus={saveStatus}
       />
       
       <EnhancedToolbar 

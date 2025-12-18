@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
+import SaveIndicator from './SaveIndicator';
 import './Navbar.css';
 
-function Navbar({ newFile, openFile, saveFile, exportToPDF, exportToHTML, toggleDarkMode, isDarkMode }) {
+function Navbar({ newFile, openFile, saveFile, exportToPDF, exportToHTML, toggleDarkMode, isDarkMode, saveStatus }) {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -67,6 +68,10 @@ function Navbar({ newFile, openFile, saveFile, exportToPDF, exportToHTML, toggle
           <button onClick={toggleDarkMode}>
             {isDarkMode ? '☀️' : '🌙'}
           </button>
+        </li>
+        {/* Save Status Indicator */}
+        <li className="save-indicator-wrapper">
+          <SaveIndicator status={saveStatus} />
         </li>
       </ul>
     </nav>
