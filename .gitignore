@@ -100,3 +100,5 @@ Thumbs.db
 
 # GitHub Actions
 .github/workflows/secrets/
+# Local Netlify folder
+.netlify

@@ -105,7 +105,6 @@
 
 ### Backend Stack (Optional)
 - **Node.js & Express** - RESTful API server
-- **SQLite** - Lightweight database for document storage
 - **Sequelize ORM** - Database abstraction layer
 - **JWT Authentication** - Secure user authentication
 - **bcrypt** - Password hashing

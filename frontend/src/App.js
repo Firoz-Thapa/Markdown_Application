@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import EnhancedEditor from './components/EnhancedEditor';
 import SyncedPreview from './components/SyncedPreview';
 import Navbar from './components/Navbar';
@@ -6,7 +6,6 @@ import EnhancedToolbar from './components/Toolbar';
 import Popup from './components/Popup';
 import Chatbot from './components/Chatbot';
 import DocumentStats from './components/DocumentStats';
-import SaveIndicator from './components/SaveIndicator';
 import { useAutoSave, recoverAutoSave, clearAutoSave } from './hooks/useAutoSave';
 import mathJaxManager from './utils/mathUtils';
 import { saveAs } from 'file-saver';
