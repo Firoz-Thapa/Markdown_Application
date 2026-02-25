@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import runChat from '../services/groqService';
+import runChat from '../services/chatService';
 import './Chatbot.css';
 
 function Chatbot({ isOpen, onClose }) {
