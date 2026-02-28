@@ -30,11 +30,12 @@ exports.handler = async (event, context) => {
       };
     }
 
-    // Use the server-side environment variable (NOT REACT_APP_ prefix)
-    const GROQ_API_KEY = process.env.GROQ_API_KEY;
+    const API_KEY = process.env.DEEPSEEK_API_KEY || process.env.OPENAI_API_KEY || process.env.GROQ_API_KEY;
+    const useDeepSeek = Boolean(process.env.DEEPSEEK_API_KEY);
+    const useOpenAI = !useDeepSeek && Boolean(process.env.OPENAI_API_KEY);
 
-    if (!GROQ_API_KEY) {
-      console.error('GROQ_API_KEY is not configured');
+    if (!API_KEY) {
+      console.error('No API key configured. Set DEEPSEEK_API_KEY, OPENAI_API_KEY or GROQ_API_KEY in your environment.');
       return {
         statusCode: 500,
         headers,
@@ -42,14 +43,27 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    let endpoint;
+    if (useDeepSeek) {
+      endpoint = 'https://api.deepseek.ai/v1/chat/completions';
+    } else if (useOpenAI) {
+      endpoint = 'https://api.openai.com/v1/chat/completions';
+    } else {
+      endpoint = 'https://api.groq.com/openai/v1/chat/completions';
+    }
+
+    const response = await fetch(endpoint, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${GROQ_API_KEY}`,
+        'Authorization': `Bearer ${API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
+        model: useDeepSeek
+          ? 'deepseek-default' /* replace with actual DeepSeek model name if needed */
+          : useOpenAI
+            ? 'gpt-3.5-turbo'
+            : 'llama-3.1-8b-instant',
         messages: [
           {
             role: 'system',
@@ -67,7 +81,7 @@ exports.handler = async (event, context) => {
 
     if (!response.ok) {
       const errorData = await response.json();
-      console.error('Groq API Error:', errorData);
+      console.error('Chat API Error:', errorData);
       
       if (response.status === 429) {
         return {

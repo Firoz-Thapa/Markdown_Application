@@ -46,7 +46,12 @@
 
 - Node.js 18.x or higher
 - npm or yarn package manager
-- Google Gemini API key (for AI features)
+- **AI API key** – you may use one of the following environment variables:
+  - `DEEPSEEK_API_KEY` (highest priority)
+  - `OPENAI_API_KEY` (free OpenAI tier)
+  - `GROQ_API_KEY` (fallback)
+  The app automatically chooses the first key it finds in that order.
+  (This replaces the previous Google Gemini requirement.)
 
 ### Installation
 
@@ -61,10 +66,12 @@
    # Copy environment templates
    cp frontend/.env.template frontend/.env
    cp Backend/.env.template Backend/.env
+   # If you're deploying Netlify functions, also add variables in Netlify dashboard
    
    # Edit with your actual values
-   nano frontend/.env  # Add your Gemini API key
-   nano Backend/.env   # Add your JWT secret
+   nano frontend/.env  # Add any frontend config
+   nano Backend/.env   # Add your JWT secret or other server configs
+   # Set OPENAI_API_KEY (or GROQ_API_KEY) in the environment where the Netlify function runs
    ```
 
 3. **Install frontend dependencies**
@@ -192,12 +199,18 @@ npm run seed       # Seed database with sample data
 
 ### Environment Variables
 
-See [ENVIRONMENT_SETUP.md](./ENVIRONMENT_SETUP.md) for detailed configuration instructions.
+> The AI chat endpoint is served by a serverless function. Configure an API key in the
+> deployment environment (e.g. Netlify site settings). The function checks the following
+> variables in order and uses whichever is defined first:
+> `DEEPSEEK_API_KEY`, `OPENAI_API_KEY`, then `GROQ_API_KEY`.
+> 
+> For the new DeepSeek integration, set `DEEPSEEK_API_KEY` and review the default endpoint
+> and model name inside `netlify/functions/chat.js`; adjust them if DeepSeek's API differs.
 
 **Frontend (.env):**
 ```bash
-REACT_APP_GEMINI_API_KEY=your_gemini_api_key
 REACT_APP_API_URL=http://localhost:5000/api  # Optional
+# (no API key needed here; requests go through the serverless function)
 ```
 
 **Backend (.env):**
