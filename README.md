@@ -1,6 +1,6 @@
 # 📝 Markdown Application
 
-> A modern, feature-rich markdown editor with real-time preview, AI assistance, and mathematical equation support.
+> A modern, feature-rich markdown editor with real-time preview and mathematical equation support.
 
 [![Live Demo](https://img.shields.io/badge/demo-live-brightgreen)](https://markdown-application.vercel.app)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -21,10 +21,6 @@
 - **Math Toolbar** - Quick insertion of common mathematical expressions
 - **Real-time Rendering** - Equations render as you type
 
-### 🤖 **AI-Powered Assistant**
-- **Markdown Help** - Built-in chatbot powered by Google Gemini AI
-- **Template Generation** - Get markdown templates and examples
-- **Writing Assistance** - Help with markdown syntax and best practices
 
 ### 🛠️ **Productivity Tools**
 - **Auto-save** - Automatic content saving with recovery
@@ -46,12 +42,6 @@
 
 - Node.js 18.x or higher
 - npm or yarn package manager
-- **AI API key** – you may use one of the following environment variables:
-  - `DEEPSEEK_API_KEY` (highest priority)
-  - `OPENAI_API_KEY` (free OpenAI tier)
-  - `GROQ_API_KEY` (fallback)
-  The app automatically chooses the first key it finds in that order.
-  (This replaces the previous Google Gemini requirement.)
 
 ### Installation
 
@@ -108,7 +98,6 @@
 - **CodeMirror 6** - Advanced code editor with syntax highlighting
 - **MathJax 3** - Mathematical notation rendering
 - **Showdown** - Markdown to HTML conversion
-- **Google Gemini AI** - AI-powered assistance
 
 ### Backend Stack (Optional)
 - **Node.js & Express** - RESTful API server
@@ -199,14 +188,18 @@ npm run seed       # Seed database with sample data
 
 ### Environment Variables
 
-> The AI chat endpoint is served by a serverless function. Configure an API key in the
-> deployment environment (e.g. Netlify site settings). The function checks the following
-> variables in order and uses whichever is defined first:
-> `DEEPSEEK_API_KEY`, `OPENAI_API_KEY`, then `GROQ_API_KEY`.
-> 
-> For the new DeepSeek integration, set `DEEPSEEK_API_KEY` and review the default endpoint
-> and model name inside `netlify/functions/chat.js`; adjust them if DeepSeek's API differs.
+**Frontend (.env):**
+```bash
+REACT_APP_API_URL=http://localhost:5000/api  # Optional
+```
 
+**Backend (.env):**
+```bash
+PORT=5000
+NODE_ENV=development
+JWT_SECRET=your_jwt_secret
+FRONTEND_URL=http://localhost:3000
+```
 **Frontend (.env):**
 ```bash
 REACT_APP_API_URL=http://localhost:5000/api  # Optional

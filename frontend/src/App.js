@@ -4,7 +4,6 @@ import SyncedPreview from './components/SyncedPreview';
 import Navbar from './components/Navbar';
 import EnhancedToolbar from './components/Toolbar'; 
 import Popup from './components/Popup';
-import Chatbot from './components/Chatbot';
 import DocumentStats from './components/DocumentStats';
 import { useAutoSave, recoverAutoSave, clearAutoSave } from './hooks/useAutoSave';
 import mathJaxManager from './utils/mathUtils';
@@ -19,7 +18,6 @@ function App() {
   const [isPopupVisible, setIsPopupVisible] = useState(false);
   const [popupType, setPopupType] = useState('');
   const [popupConfirm, setPopupConfirm] = useState(() => () => {});
-  const [isChatOpen, setIsChatOpen] = useState(false);
   const [showRecoveryDialog, setShowRecoveryDialog] = useState(false);
   const [activeView, setActiveView] = useState('editor');
   const [simpleLineBreaks, setSimpleLineBreaks] = useState(true);
@@ -294,19 +292,7 @@ function App() {
         </div>
       )}
       
-      {/* Chat Toggle Button */}
-      <button 
-        className="chat-toggle-btn" 
-        onClick={() => setIsChatOpen(!isChatOpen)}
-      >
-        💬
-      </button>
-      
-      {/* Chatbot Component */}
-      <Chatbot 
-        isOpen={isChatOpen} 
-        onClose={() => setIsChatOpen(false)} 
-      />
+
     </div>
   );
 }
