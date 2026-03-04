@@ -21,9 +21,19 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@testing-library/jest-dom": "^6.4.8",
-    "gh-pages": "^6.1.1",
-    "dotenv-cli": "^4.0.0"
+    "dotenv-cli": "^4.0.0",
+    "gh-pages": "^6.1.1"
+  },
+  "jest": {
+    "transformIgnorePatterns": [
+      "/node_modules/(?!(@codemirror|@lezer|@marijn|crelt|style-mod|w3c-keyname)/)"
+    ],
+    "moduleNameMapper": {
+    "^../pdfUtils$": "<rootDir>/src/__mocks__/pdfUtils.js",
+    "^./pdfUtils$": "<rootDir>/src/__mocks__/pdfUtils.js"
+  }
   },
   "scripts": {
     "start": "dotenv -e ../.env react-scripts start",
