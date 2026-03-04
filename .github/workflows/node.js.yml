@@ -43,7 +43,6 @@ jobs:
       run: npm run build
       env:
         REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
-        PUBLIC_URL: /markdown-workspace
         
     - name: Upload build artifacts
       uses: actions/upload-artifact@v4
@@ -76,6 +75,32 @@ jobs:
     - name: Create test database
       run: touch test-database.sqlite
 
+  # Deploy Frontend to Vercel
+  deploy-frontend:
+    needs: [frontend-test]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./frontend
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        
+    - name: Install Vercel CLI
+      run: npm install -g vercel@latest
+      
+    - name: Deploy to Vercel
+      run: vercel --token "$VERCEL_TOKEN" --yes --prod
+      env:
+        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
 
   # Deploy Backend to Vercel
   deploy-backend:
@@ -98,8 +123,7 @@ jobs:
       run: npm install -g vercel@latest
       
     - name: Deploy to Vercel
-      run: |
-        vercel --token "$VERCEL_TOKEN" --yes --prod
+      run: vercel --token "$VERCEL_TOKEN" --yes --prod
       env:
         VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -107,7 +131,7 @@ jobs:
 
   # Health Checks
   health-check:
-    needs: [deploy-backend]
+    needs: [deploy-backend, deploy-frontend]
     runs-on: ubuntu-latest
     
     steps:
@@ -141,6 +165,7 @@ jobs:
         echo "Your Markdown Workspace is now live!"
         echo ""
         echo "Platform Details:"
+        echo "   - Frontend: Vercel"
         echo "   - Backend: Vercel Serverless (Free)"
         echo "   - Database: SQLite (File-based)"
         echo ""
@@ -153,7 +178,7 @@ jobs:
 
   # Failure Notification
   notify-failure:
-    needs: [frontend-test, backend-test, deploy-backend]
+    needs: [frontend-test, backend-test, deploy-frontend, deploy-backend]
     runs-on: ubuntu-latest
     if: failure() && github.ref == 'refs/heads/main'
     
@@ -172,5 +197,6 @@ jobs:
         echo "- VERCEL_TOKEN"
         echo "- VERCEL_ORG_ID"
         echo "- VERCEL_PROJECT_ID"
-        echo "- REACT_APP_GEMINI_API_KEY"
+        echo "- VERCEL_FRONTEND_PROJECT_ID"
+        echo "- REACT_APP_API_URL"
         echo "- JWT_SECRET"
