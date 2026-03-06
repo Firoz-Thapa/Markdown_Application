@@ -1,6 +1,6 @@
 {
   "buildCommand": "cd frontend && npm install && npm run build",
-  "outputDirectory": "frontend/build", 
+  "outputDirectory": "frontend/build",
   "installCommand": "npm install && cd frontend && npm install",
   "framework": "create-react-app",
   "rewrites": [
@@ -12,14 +12,5 @@
       "source": "/(.*)",
       "destination": "/index.html"
     }
-  ],
-  "env": [
-    "JWT_SECRET",
-    "DATABASE_URL",
-    "NODE_ENV",
-    "FRONTEND_URL",
-    "JWT_EXPIRES_IN",
-    "RATE_LIMIT_WINDOW_MS",
-    "RATE_LIMIT_MAX_REQUESTS"
   ]
 }
