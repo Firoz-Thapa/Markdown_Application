@@ -2,9 +2,9 @@ name: CI/CD Pipeline - GitHub Pages & Vercel
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [main, develop]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -12,7 +12,7 @@ permissions:
   id-token: write
 
 env:
-  NODE_VERSION: '18.x'
+  NODE_VERSION: "18.x"
 
 jobs:
   # Frontend Tests and Build
@@ -21,35 +21,35 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: frontend/package-lock.json
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Run tests
-      run: npm test -- --coverage --watchAll=false
-      
-    - name: Build frontend
-      run: npm run build
-      env:
-        REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: frontend-build
-        path: frontend/build/
-        retention-days: 1
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --coverage --watchAll=false
+
+      - name: Build frontend
+        run: npm run build
+        env:
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: frontend/build/
+          retention-days: 1
 
   # Backend Tests
   backend-test:
@@ -57,23 +57,23 @@ jobs:
     defaults:
       run:
         working-directory: ./Backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        cache: 'npm'
-        cache-dependency-path: Backend/package-lock.json
-        
-    - name: Install dependencies
-      run: npm ci
-      
-    - name: Create test database
-      run: touch test-database.sqlite
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: Backend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Create test database
+        run: touch test-database.sqlite
 
   # Deploy Frontend to Vercel
   deploy-frontend:
@@ -82,25 +82,25 @@ jobs:
     defaults:
       run:
         working-directory: ./frontend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        
-    - name: Install Vercel CLI
-      run: npm install -g vercel@latest
-      
-    - name: Deploy to Vercel
-      run: vercel --token "$VERCEL_TOKEN" --yes --prod
-      env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_FRONTEND_PROJECT_ID }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel
+        run: vercel --token "$VERCEL_TOKEN" --yes --prod --local-config vercel.json
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
   # Deploy Backend to Vercel
   deploy-backend:
@@ -109,94 +109,94 @@ jobs:
     defaults:
       run:
         working-directory: ./Backend
-    
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Setup Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: ${{ env.NODE_VERSION }}
-        
-    - name: Install Vercel CLI
-      run: npm install -g vercel@latest
-      
-    - name: Deploy to Vercel
-      run: vercel --token "$VERCEL_TOKEN" --yes --prod
-      env:
-        VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-        VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-        VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel@latest
+
+      - name: Deploy to Vercel
+        run: vercel --token "$VERCEL_TOKEN" --yes --prod
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
   # Health Checks
   health-check:
     needs: [deploy-backend, deploy-frontend]
     runs-on: ubuntu-latest
-    
+
     steps:
-    - name: Wait for deployment to stabilize
-      run: sleep 60
-      
-    - name: Check Backend Health
-      run: |
-        echo "Checking backend health..."
-        BACKEND_URL="${{ secrets.BACKEND_PRODUCTION_URL }}"
-        response=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/health")
-        if [ $response -eq 200 ]; then
-          echo "Backend is healthy (HTTP $response)"
-        else
-          echo "Backend returned HTTP $response"
-        fi
+      - name: Wait for deployment to stabilize
+        run: sleep 60
+
+      - name: Check Backend Health
+        run: |
+          echo "Checking backend health..."
+          BACKEND_URL="${{ secrets.BACKEND_PRODUCTION_URL }}"
+          response=$(curl -s -o /dev/null -w "%{http_code}" "$BACKEND_URL/api/health")
+          if [ $response -eq 200 ]; then
+            echo "Backend is healthy (HTTP $response)"
+          else
+            echo "Backend returned HTTP $response"
+          fi
 
   # Success Notification
   notify-success:
     needs: [health-check]
     runs-on: ubuntu-latest
     if: success() && github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Deployment Success Notification
-      run: |
-        echo "Deployment Completed Successfully!"
-        echo ""
-        echo "Backend URL: ${{ secrets.BACKEND_PRODUCTION_URL }}"
-        echo ""
-        echo "Your Markdown Workspace is now live!"
-        echo ""
-        echo "Platform Details:"
-        echo "   - Frontend: Vercel"
-        echo "   - Backend: Vercel Serverless (Free)"
-        echo "   - Database: SQLite (File-based)"
-        echo ""
-        echo "Features available:"
-        echo "   - Markdown editing with live preview"
-        echo "   - Math equation support"
-        echo "   - Document management"
-        echo "   - User authentication"
-        echo "   - Dark/Light theme"
+      - name: Deployment Success Notification
+        run: |
+          echo "Deployment Completed Successfully!"
+          echo ""
+          echo "Backend URL: ${{ secrets.BACKEND_PRODUCTION_URL }}"
+          echo ""
+          echo "Your Markdown Workspace is now live!"
+          echo ""
+          echo "Platform Details:"
+          echo "   - Frontend: Vercel"
+          echo "   - Backend: Vercel Serverless (Free)"
+          echo "   - Database: SQLite (File-based)"
+          echo ""
+          echo "Features available:"
+          echo "   - Markdown editing with live preview"
+          echo "   - Math equation support"
+          echo "   - Document management"
+          echo "   - User authentication"
+          echo "   - Dark/Light theme"
 
   # Failure Notification
   notify-failure:
     needs: [frontend-test, backend-test, deploy-frontend, deploy-backend]
     runs-on: ubuntu-latest
     if: failure() && github.ref == 'refs/heads/main'
-    
+
     steps:
-    - name: Deployment Failure Notification
-      run: |
-        echo "Deployment Failed!"
-        echo ""
-        echo "Please check the logs above for details."
-        echo "Common issues:"
-        echo "- Missing GitHub secrets"
-        echo "- Vercel authentication problems"
-        echo "- Build errors in frontend/backend"
-        echo ""
-        echo "Check your secrets:"
-        echo "- VERCEL_TOKEN"
-        echo "- VERCEL_ORG_ID"
-        echo "- VERCEL_PROJECT_ID"
-        echo "- VERCEL_FRONTEND_PROJECT_ID"
-        echo "- REACT_APP_API_URL"
-        echo "- JWT_SECRET"
+      - name: Deployment Failure Notification
+        run: |
+          echo "Deployment Failed!"
+          echo ""
+          echo "Please check the logs above for details."
+          echo "Common issues:"
+          echo "- Missing GitHub secrets"
+          echo "- Vercel authentication problems"
+          echo "- Build errors in frontend/backend"
+          echo ""
+          echo "Check your secrets:"
+          echo "- VERCEL_TOKEN"
+          echo "- VERCEL_ORG_ID"
+          echo "- VERCEL_PROJECT_ID"
+          echo "- VERCEL_FRONTEND_PROJECT_ID"
+          echo "- REACT_APP_API_URL"
+          echo "- JWT_SECRET"
